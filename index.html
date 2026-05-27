@@ -382,6 +382,9 @@
     background:rgba(0,0,0,0.85); z-index:1000; backdrop-filter:blur(4px);
     animation:fadeIn 0.2s ease-out;
   }
+  .modal-overlay.active {
+    display:flex;
+  }
   @keyframes fadeIn { from{opacity:0;} to{opacity:1;} }
   
   .modal-content {
@@ -864,7 +867,7 @@ function renderTable() {
       <td>${catPill(r.Category)}</td>
       <td>${escHtml(r['Sub Category']||'')}</td>
       <td>${r.TSP==='YES' ? '<span class="pill tsp-yes">✓ TSP</span>' : ''}</td>
-      <td><button class="nav-btn" style="padding:4px 10px;font-size:12px;" onclick="openInsight(${globalIndex})">📊 View</button></td>
+      <td><button class="nav-btn" style="padding:4px 10px;font-size:12px;cursor:pointer;" onclick="event.stopPropagation(); console.log('View button clicked, index:', ${globalIndex}); openInsight(${globalIndex})">📊 View</button></td>
     </tr>
   `;
   }).join('');
@@ -930,6 +933,15 @@ function exportResults() {
 let currentInsightIndex = 0;
 
 function openInsight(index) {
+  console.log('Opening insight for index:', index);
+  console.log('filteredData length:', filteredData.length);
+  
+  if (!filteredData || !filteredData[index]) {
+    console.error('Candidate not found at index:', index);
+    alert('Error: Candidate data not found');
+    return;
+  }
+  
   const candidate = filteredData[index];
   currentInsightIndex = index;
   
@@ -1125,6 +1137,18 @@ function openInsight(index) {
   `;
   
   document.body.insertAdjacentHTML('beforeend', modalHTML);
+  
+  console.log('Modal HTML inserted, attempting to show...');
+  
+  // Trigger reflow and add active class to show modal
+  const modal = document.querySelector('.modal-overlay');
+  console.log('Modal element found:', !!modal);
+  if (modal) {
+    setTimeout(() => {
+      console.log('Adding active class to modal');
+      modal.classList.add('active');
+    }, 10);
+  }
 }
 
 function closeInsight() {
