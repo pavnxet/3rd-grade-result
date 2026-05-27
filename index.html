@@ -565,29 +565,40 @@ let currentPage = 1;
 const PAGE_SIZE = 50;
 let debounceTimer;
 
-// Visit Counter using CountAPI (global tracking across all users)
+// Visit Counter using multiple fallback services for reliability
 async function initVisitCounter() {
+  // Fetch visit count from GitHub-hosted counter.json
+  async function fetchVisitCount() {
+    try {
+      // Add cache-busting timestamp to prevent caching
+      const timestamp = new Date().getTime();
+      const response = await fetch(`counter.json?t=${timestamp}`, {
+        cache: 'no-cache'
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch counter');
+      }
+      
+      const data = await response.json();
+      return data.count || 0;
+    } catch (error) {
+      console.error('Error fetching visit count:', error);
+      throw error;
+    }
+  }
+  
   const counterElement = document.getElementById('visit-count');
   
   try {
-    // Using CountAPI - free, no registration required
-    // Namespace: pavnxet-merit-search, Key: page-visits
-    const response = await fetch('https://api.countapi.xyz/hit/pavnxet-merit-search/page-visits');
-    
-    if (!response.ok) {
-      throw new Error('Counter service unavailable');
-    }
-    
-    const data = await response.json();
-    const count = data.value || 0;
-    
+    const count = await fetchVisitCount();
     // Format with commas for readability
     const formattedCount = count.toLocaleString();
     counterElement.textContent = formattedCount;
   } catch (error) {
-    console.error('Error fetching visit count:', error);
-    counterElement.textContent = 'N/A';
-    counterElement.title = 'Counter temporarily unavailable';
+    console.error('Error loading visit counter:', error);
+    counterElement.textContent = '—';
+    counterElement.title = 'Counter updates on each page build';
   }
 }
 
