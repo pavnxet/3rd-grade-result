@@ -173,6 +173,38 @@
     margin-top: 6px;
     font-family: 'Noto Sans', sans-serif;
   }
+  
+  /* Visit Counter */
+  .visit-counter {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 14px;
+    padding: 8px 16px;
+    background: rgba(255,107,0,0.1);
+    border: 1px solid rgba(255,107,0,0.25);
+    border-radius: 20px;
+    font-size: 13px;
+    color: var(--text);
+    animation: fadeInUp 1s ease-out 0.3s both;
+  }
+  
+  .counter-icon {
+    font-size: 16px;
+  }
+  
+  .counter-label {
+    color: var(--muted);
+    font-weight: 400;
+  }
+  
+  .counter-value {
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--saffron-light);
+    letter-spacing: 0.5px;
+  }
 
   .main { max-width: 1300px; margin: 0 auto; padding: 0 24px 28px; }
 
@@ -406,6 +438,11 @@
         <a href="https://github.com/pavnxet/3rd-grade-result/tree/github-csv-search-page-a7812" class="watermark-link" target="_blank" rel="noopener noreferrer">pavnxet</a>
       </div>
       <div class="watermark-sub">GitHub CSV Search Page</div>
+      <div class="visit-counter" id="visit-counter">
+        <span class="counter-icon">👁️</span>
+        <span class="counter-label">Page Visits: </span>
+        <span class="counter-value" id="visit-count">Loading...</span>
+      </div>
     </div>
   </div>
 
@@ -528,8 +565,35 @@ let currentPage = 1;
 const PAGE_SIZE = 50;
 let debounceTimer;
 
+// Visit Counter using CountAPI (global tracking across all users)
+async function initVisitCounter() {
+  const counterElement = document.getElementById('visit-count');
+  
+  try {
+    // Using CountAPI - free, no registration required
+    // Namespace: pavnxet-merit-search, Key: page-visits
+    const response = await fetch('https://api.countapi.xyz/hit/pavnxet-merit-search/page-visits');
+    
+    if (!response.ok) {
+      throw new Error('Counter service unavailable');
+    }
+    
+    const data = await response.json();
+    const count = data.value || 0;
+    
+    // Format with commas for readability
+    const formattedCount = count.toLocaleString();
+    counterElement.textContent = formattedCount;
+  } catch (error) {
+    console.error('Error fetching visit count:', error);
+    counterElement.textContent = 'N/A';
+    counterElement.title = 'Counter temporarily unavailable';
+  }
+}
+
 // Auto-load the CSV file on page load
 window.addEventListener('DOMContentLoaded', function() {
+  initVisitCounter();
   fetchCSV();
 });
 
