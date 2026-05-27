@@ -1,1 +1,1 @@
-Nothing should be ignored based on the provided file changes, as they only include HTML files which are source code/config files. The current .gitignore is empty and no new rules need to be added.
+(index.html is a source file, so no need to add anything to .gitignore)

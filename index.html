@@ -90,7 +90,91 @@
     letter-spacing: 0.5px;
   }
 
-  .main { max-width: 1300px; margin: 0 auto; padding: 28px 24px; }
+  /* Watermark Section */
+  .watermark-section {
+    background: linear-gradient(135deg, rgba(255,107,0,0.08) 0%, rgba(19,136,8,0.08) 100%);
+    border: 1px solid rgba(255,107,0,0.2);
+    border-radius: 16px;
+    padding: 24px 20px;
+    text-align: center;
+    margin: 24px auto;
+    max-width: 800px;
+    animation: fadeInUp 0.8s ease-out;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .watermark-section::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255,107,0,0.03) 0%, transparent 70%);
+    animation: pulse 4s ease-in-out infinite;
+  }
+  
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); opacity: 0.5; }
+    50% { transform: scale(1.1); opacity: 0.8; }
+  }
+  
+  .watermark-content {
+    position: relative;
+    z-index: 1;
+  }
+  
+  .watermark-heart {
+    font-size: 32px;
+    display: inline-block;
+    animation: heartbeat 1.5s ease-in-out infinite;
+    margin: 0 8px;
+  }
+  
+  @keyframes heartbeat {
+    0%, 100% { transform: scale(1); }
+    25% { transform: scale(1.2); }
+    50% { transform: scale(1); }
+    75% { transform: scale(1.1); }
+  }
+  
+  .watermark-text {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 16px;
+    color: var(--text);
+    font-weight: 500;
+    letter-spacing: 0.5px;
+  }
+  
+  .watermark-link {
+    color: var(--saffron-light);
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.2s;
+    border-bottom: 1px dashed rgba(255,107,0,0.4);
+    padding-bottom: 2px;
+  }
+  
+  .watermark-link:hover {
+    color: var(--saffron);
+    border-bottom-style: solid;
+    text-shadow: 0 0 12px rgba(255,107,0,0.5);
+  }
+  
+  .watermark-sub {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 6px;
+    font-family: 'Noto Sans', sans-serif;
+  }
+
+  .main { max-width: 1300px; margin: 0 auto; padding: 0 24px 28px; }
 
   /* Upload zone */
   #upload-section {
@@ -313,6 +397,17 @@
 </header>
 
 <div class="main">
+
+  <!-- Watermark Section -->
+  <div class="watermark-section">
+    <div class="watermark-content">
+      <div class="watermark-text">
+        Made with <span class="watermark-heart">💖</span> by 
+        <a href="https://github.com/pavnxet/3rd-grade-result/tree/github-csv-search-page-a7812" class="watermark-link" target="_blank" rel="noopener noreferrer">pavnxet</a>
+      </div>
+      <div class="watermark-sub">GitHub CSV Search Page</div>
+    </div>
+  </div>
 
   <!-- Upload Section -->
   <div id="upload-section">
