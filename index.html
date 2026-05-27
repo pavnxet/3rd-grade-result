@@ -174,38 +174,6 @@
     font-family: 'Noto Sans', sans-serif;
   }
   
-  /* Visit Counter */
-  .visit-counter {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    margin-top: 14px;
-    padding: 8px 16px;
-    background: rgba(255,107,0,0.1);
-    border: 1px solid rgba(255,107,0,0.25);
-    border-radius: 20px;
-    font-size: 13px;
-    color: var(--text);
-    animation: fadeInUp 1s ease-out 0.3s both;
-  }
-  
-  .counter-icon {
-    font-size: 16px;
-  }
-  
-  .counter-label {
-    color: var(--muted);
-    font-weight: 400;
-  }
-  
-  .counter-value {
-    font-family: 'Rajdhani', sans-serif;
-    font-weight: 700;
-    font-size: 15px;
-    color: var(--saffron-light);
-    letter-spacing: 0.5px;
-  }
-
   .main { max-width: 1300px; margin: 0 auto; padding: 0 24px 28px; }
 
   /* Upload zone */
@@ -408,12 +376,148 @@
 
   mark { background:rgba(255,107,0,0.3); color:var(--white); border-radius:2px; padding:0 2px; }
 
+  /* Insight Modal */
+  .modal-overlay {
+    display:none; position:fixed; top:0; left:0; width:100%; height:100%;
+    background:rgba(0,0,0,0.85); z-index:1000; backdrop-filter:blur(4px);
+    animation:fadeIn 0.2s ease-out;
+  }
+  @keyframes fadeIn { from{opacity:0;} to{opacity:1;} }
+  
+  .modal-content {
+    position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+    background:var(--surface); border:1px solid var(--border);
+    border-radius:16px; width:90%; max-width:900px; max-height:85vh;
+    overflow-y:auto; box-shadow:0 20px 60px rgba(0,0,0,0.5);
+  }
+  
+  .modal-header {
+    display:flex; align-items:center; justify-content:space-between;
+    padding:20px 24px; border-bottom:1px solid var(--border);
+    background:var(--surface2); position:sticky; top:0; z-index:10;
+  }
+  
+  .modal-title {
+    font-family:'Rajdhani',sans-serif; font-size:20px; font-weight:700;
+    color:var(--saffron); text-transform:uppercase; letter-spacing:1px;
+  }
+  
+  .modal-close {
+    background:transparent; border:none; color:var(--muted);
+    font-size:24px; cursor:pointer; padding:4px; border-radius:4px;
+    transition:all 0.2s;
+  }
+  .modal-close:hover { color:var(--white); background:rgba(255,255,255,0.1); }
+  
+  .modal-body { padding:24px; }
+  
+  .insight-grid {
+    display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));
+    gap:20px; margin-bottom:24px;
+  }
+  
+  .insight-card {
+    background:var(--navy2); border:1px solid var(--border);
+    border-radius:12px; padding:18px;
+  }
+  
+  .insight-card h4 {
+    font-family:'Rajdhani',sans-serif; font-size:14px; font-weight:600;
+    color:var(--muted); text-transform:uppercase; letter-spacing:0.8px;
+    margin-bottom:12px;
+  }
+  
+  .rank-display {
+    display:flex; align-items:center; gap:16px; margin-bottom:12px;
+  }
+  
+  .rank-badge {
+    background:linear-gradient(135deg,var(--saffron),var(--saffron-light));
+    color:white; padding:8px 16px; border-radius:8px;
+    font-family:'Rajdhani',sans-serif; font-size:24px; font-weight:700;
+    box-shadow:0 4px 12px rgba(255,107,0,0.3);
+  }
+  
+  .rank-label { font-size:13px; color:var(--text); }
+  
+  .progress-bar-wrap {
+    background:rgba(255,255,255,0.1); border-radius:8px; height:12px;
+    overflow:hidden; margin-top:8px;
+  }
+  
+  .progress-fill-insight {
+    height:100%; background:linear-gradient(90deg,var(--saffron),var(--saffron-light));
+    border-radius:8px; transition:width 0.5s ease-out;
+  }
+  
+  .comparison-row {
+    display:flex; align-items:center; gap:12px; padding:10px 0;
+    border-bottom:1px solid rgba(255,255,255,0.05);
+  }
+  .comparison-row:last-child { border-bottom:none; }
+  
+  .comp-avatar {
+    width:40px; height:40px; border-radius:50%;
+    background:var(--navy3); display:flex; align-items:center; justify-content:center;
+    font-size:18px; flex-shrink:0;
+  }
+  
+  .comp-info { flex:1; }
+  .comp-name { font-weight:600; color:var(--text); font-size:14px; }
+  .comp-detail { font-size:12px; color:var(--muted); }
+  
+  .comp-marks {
+    font-family:'Rajdhani',sans-serif; font-weight:700; font-size:16px;
+  }
+  .comp-marks.high { color:#4CAF50; }
+  .comp-marks.mid { color:var(--saffron); }
+  .comp-marks.low { color:#F44336; }
+  
+  .gap-indicator {
+    display:inline-flex; align-items:center; gap:6px;
+    padding:4px 10px; border-radius:20px; font-size:11px; font-weight:600;
+  }
+  .gap-critical { background:rgba(244,67,54,0.15); color:#F44336; }
+  .gap-safe { background:rgba(76,175,80,0.15); color:#4CAF50; }
+  .gap-moderate { background:rgba(255,193,7,0.15); color:#FFC107; }
+  
+  .stats-mini {
+    display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin-top:12px;
+  }
+  .stat-mini {
+    background:var(--navy3); padding:10px; border-radius:8px; text-align:center;
+  }
+  .stat-mini .val { font-family:'Rajdhani',sans-serif; font-size:18px; font-weight:700; color:var(--saffron); }
+  .stat-mini .lbl { font-size:10px; color:var(--muted); text-transform:uppercase; margin-top:2px; }
+  
+  .percentile-badge {
+    display:inline-block; background:rgba(76,175,80,0.15);
+    color:#81C784; padding:6px 12px; border-radius:20px;
+    font-family:'Rajdhani',sans-serif; font-size:13px; font-weight:600;
+    border:1px solid rgba(76,175,80,0.3);
+  }
+  
+  .nav-candidate {
+    display:flex; gap:10px; margin-top:20px;
+  }
+  
+  .nav-btn {
+    flex:1; background:var(--navy2); border:1px solid var(--border);
+    color:var(--text); padding:10px; border-radius:8px;
+    font-family:'Rajdhani',sans-serif; font-size:14px; font-weight:600;
+    cursor:pointer; transition:all 0.2s;
+  }
+  .nav-btn:hover:not(:disabled) { border-color:var(--saffron); color:var(--saffron); }
+  .nav-btn:disabled { opacity:0.3; cursor:default; }
+
   @media (max-width:600px) {
     header { padding:12px 16px; }
     .header-text h1 { font-size:17px; }
     .main { padding:16px 12px; }
     .fields-grid { grid-template-columns:1fr 1fr; }
     #upload-section { padding:28px 16px; }
+    .modal-content { width:95%; }
+    .insight-grid { grid-template-columns:1fr; }
   }
 </style>
 </head>
@@ -438,11 +542,6 @@
         <a href="https://github.com/pavnxet/3rd-grade-result/tree/github-csv-search-page-a7812" class="watermark-link" target="_blank" rel="noopener noreferrer">pavnxet</a>
       </div>
       <div class="watermark-sub">GitHub CSV Search Page</div>
-      <div class="visit-counter" id="visit-counter">
-        <span class="counter-icon">👁️</span>
-        <span class="counter-label">Page Visits: </span>
-        <span class="counter-value" id="visit-count">Loading...</span>
-      </div>
     </div>
   </div>
 
@@ -547,6 +646,7 @@
               <th>Category</th>
               <th>Sub Cat</th>
               <th>TSP</th>
+              <th>Action</th>
             </tr>
           </thead>
           <tbody id="table-body"></tbody>
@@ -565,46 +665,8 @@ let currentPage = 1;
 const PAGE_SIZE = 50;
 let debounceTimer;
 
-// Visit Counter using multiple fallback services for reliability
-async function initVisitCounter() {
-  // Fetch visit count from GitHub-hosted counter.json
-  async function fetchVisitCount() {
-    try {
-      // Add cache-busting timestamp to prevent caching
-      const timestamp = new Date().getTime();
-      const response = await fetch(`counter.json?t=${timestamp}`, {
-        cache: 'no-cache'
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch counter');
-      }
-      
-      const data = await response.json();
-      return data.count || 0;
-    } catch (error) {
-      console.error('Error fetching visit count:', error);
-      throw error;
-    }
-  }
-  
-  const counterElement = document.getElementById('visit-count');
-  
-  try {
-    const count = await fetchVisitCount();
-    // Format with commas for readability
-    const formattedCount = count.toLocaleString();
-    counterElement.textContent = formattedCount;
-  } catch (error) {
-    console.error('Error loading visit counter:', error);
-    counterElement.textContent = '—';
-    counterElement.title = 'Counter updates on each page build';
-  }
-}
-
 // Auto-load the CSV file on page load
 window.addEventListener('DOMContentLoaded', function() {
-  initVisitCounter();
   fetchCSV();
 });
 
@@ -784,12 +846,14 @@ function renderTable() {
   const tbody = document.getElementById('table-body');
 
   if (pageData.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="10"><div class="empty-state"><div class="icon">🔎</div><p>No results found. Try adjusting your search filters.</p></div></td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="11"><div class="empty-state"><div class="icon">🔎</div><p>No results found. Try adjusting your search filters.</p></div></td></tr>`;
     return;
   }
 
-  tbody.innerHTML = pageData.map(r => `
-    <tr>
+  tbody.innerHTML = pageData.map((r, idx) => {
+    const globalIndex = start + idx;
+    return `
+    <tr data-index="${globalIndex}">
       <td class="merit-cell">#${escHtml(r.Merit)}</td>
       <td class="marks-cell">${escHtml(r.Marks)}</td>
       <td>${highlight(r['Roll No'], rollQ)}</td>
@@ -800,8 +864,10 @@ function renderTable() {
       <td>${catPill(r.Category)}</td>
       <td>${escHtml(r['Sub Category']||'')}</td>
       <td>${r.TSP==='YES' ? '<span class="pill tsp-yes">✓ TSP</span>' : ''}</td>
+      <td><button class="nav-btn" style="padding:4px 10px;font-size:12px;" onclick="openInsight(${globalIndex})">📊 View</button></td>
     </tr>
-  `).join('');
+  `;
+  }).join('');
 }
 
 function renderPagination() {
@@ -858,6 +924,225 @@ function exportResults() {
   a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
   a.download = 'filtered_results.csv';
   a.click();
+}
+
+// Insight Modal Functions
+let currentInsightIndex = 0;
+
+function openInsight(index) {
+  const candidate = filteredData[index];
+  currentInsightIndex = index;
+  
+  // Calculate category rank
+  const category = candidate['Category'] || 'GEN';
+  const sameCategory = allData.filter(d => (d['Category'] || 'GEN') === category).sort((a,b) => parseFloat(a.Marks||0) - parseFloat(b.Marks||0));
+  const catRank = sameCategory.findIndex(d => d['Roll No'] === candidate['Roll No']) + 1;
+  const totalInCat = sameCategory.length;
+  
+  // Find neighbors in filtered results
+  const prevCandidate = index > 0 ? filteredData[index - 1] : null;
+  const nextCandidate = index < filteredData.length - 1 ? filteredData[index + 1] : null;
+  
+  // Calculate percentile
+  const globalRank = parseInt(candidate['Merit'] || '0');
+  const totalCandidates = allData.length;
+  const percentile = ((totalCandidates - globalRank) / totalCandidates * 100).toFixed(1);
+  
+  // Calculate gaps
+  let gapAbove = '', gapBelow = '';
+  if (prevCandidate) {
+    const diff = parseFloat(candidate.Marks||0) - parseFloat(prevCandidate.Marks||0);
+    gapAbove = diff.toFixed(2);
+  }
+  if (nextCandidate) {
+    const diff = parseFloat(nextCandidate.Marks||0) - parseFloat(candidate.Marks||0);
+    gapBelow = diff.toFixed(2);
+  }
+  
+  // Get category stats
+  const catAvg = sameCategory.reduce((sum, d) => sum + parseFloat(d.Marks||0), 0) / totalInCat;
+  const catTop = sameCategory[sameCategory.length - 1];
+  const catBottom = sameCategory[0];
+  
+  const modalHTML = `
+    <div class="modal-overlay" onclick="if(event.target===this) closeInsight()">
+      <div class="modal-content">
+        <div class="modal-header">
+          <div class="modal-title">📊 Candidate Insights</div>
+          <button class="modal-close" onclick="closeInsight()">×</button>
+        </div>
+        <div class="modal-body">
+          <div class="insight-grid">
+            <!-- Rank Card -->
+            <div class="insight-card">
+              <h4>🏆 Rank Overview</h4>
+              <div class="rank-display">
+                <div class="rank-badge">#${globalRank}</div>
+                <div>
+                  <div class="rank-label">Global Rank</div>
+                  <div style="font-size:11px;color:var(--muted);margin-top:4px;">out of ${totalCandidates} candidates</div>
+                </div>
+              </div>
+              <div class="rank-display" style="margin-top:12px;">
+                <div class="rank-badge" style="background:linear-gradient(135deg,#4CAF50,#66BB6A);font-size:18px;">#${catRank}</div>
+                <div>
+                  <div class="rank-label">${category} Category Rank</div>
+                  <div style="font-size:11px;color:var(--muted);margin-top:4px;">out of ${totalInCat} in category</div>
+                </div>
+              </div>
+              <div class="progress-bar-wrap">
+                <div class="progress-fill-insight" style="width:${(globalRank/totalCandidates)*100}%"></div>
+              </div>
+              <div style="display:flex;justify-content:space-between;margin-top:6px;font-size:11px;color:var(--muted);">
+                <span>Rank ${globalRank}</span>
+                <span>${percentile}% Percentile</span>
+                <span>Rank ${totalCandidates}</span>
+              </div>
+              <div style="text-align:center;margin-top:10px;">
+                <span class="percentile-badge">Top ${percentile}%</span>
+              </div>
+            </div>
+            
+            <!-- Gap Analysis Card -->
+            <div class="insight-card">
+              <h4>📈 Gap Analysis</h4>
+              <div class="comparison-row">
+                <div class="comp-avatar">⬆️</div>
+                <div class="comp-info">
+                  <div class="comp-name">${prevCandidate ? prevCandidate['Candidate Name'] : 'N/A'}</div>
+                  <div class="comp-detail">${prevCandidate ? 'Rank #'+prevCandidate['Merit'] : 'No candidate above'}</div>
+                </div>
+                <div class="comp-marks ${!gapAbove || parseFloat(gapAbove) > 1 ? 'high' : parseFloat(gapAbove) > 0.5 ? 'mid' : 'low'}">
+                  ${prevCandidate ? prevCandidate.Marks : '-'}
+                </div>
+              </div>
+              <div style="text-align:center;padding:8px 0;">
+                <span class="gap-indicator ${!gapAbove ? 'gap-safe' : parseFloat(gapAbove) < 0.5 ? 'gap-critical' : parseFloat(gapAbove) < 2 ? 'gap-moderate' : 'gap-safe'}">
+                  ${gapAbove ? '▲ ' + gapAbove + ' marks behind' : 'Top position'}
+                </span>
+              </div>
+              <div class="comparison-row">
+                <div class="comp-avatar">⬇️</div>
+                <div class="comp-info">
+                  <div class="comp-name">${nextCandidate ? nextCandidate['Candidate Name'] : 'N/A'}</div>
+                  <div class="comp-detail">${nextCandidate ? 'Rank #'+nextCandidate['Merit'] : 'No candidate below'}</div>
+                </div>
+                <div class="comp-marks ${!gapBelow ? 'high' : parseFloat(gapBelow) > 1 ? 'low' : 'mid'}">
+                  ${nextCandidate ? nextCandidate.Marks : '-'}
+                </div>
+              </div>
+              <div style="text-align:center;padding:8px 0;">
+                <span class="gap-indicator ${!gapBelow ? 'gap-safe' : parseFloat(gapBelow) < 0.5 ? 'gap-critical' : parseFloat(gapBelow) < 2 ? 'gap-moderate' : 'gap-safe'}">
+                  ${gapBelow ? '▼ ' + gapBelow + ' marks ahead' : 'Last position'}
+                </span>
+              </div>
+            </div>
+            
+            <!-- Category Comparison Card -->
+            <div class="insight-card">
+              <h4>👥 Category Benchmark (${category})</h4>
+              <div class="stats-mini">
+                <div class="stat-mini">
+                  <div class="val">${catAvg.toFixed(2)}</div>
+                  <div class="lbl">Category Avg</div>
+                </div>
+                <div class="stat-mini">
+                  <div class="val">${candidate.Marks}</div>
+                  <div class="lbl">Your Marks</div>
+                </div>
+                <div class="stat-mini">
+                  <div class="val">${(parseFloat(candidate.Marks||0) - catAvg).toFixed(2)}</div>
+                  <div class="lbl">Vs Average</div>
+                </div>
+                <div class="stat-mini">
+                  <div class="val">${totalInCat}</div>
+                  <div class="lbl">Total in Cat</div>
+                </div>
+              </div>
+              <div style="margin-top:14px;">
+                <div class="comparison-row">
+                  <div class="comp-avatar">🥇</div>
+                  <div class="comp-info">
+                    <div class="comp-name">${catTop['Candidate Name']}</div>
+                    <div class="comp-detail">Top in ${category}</div>
+                  </div>
+                  <div class="comp-marks high">${catTop.Marks}</div>
+                </div>
+                <div class="comparison-row">
+                  <div class="comp-avatar">🎯</div>
+                  <div class="comp-info">
+                    <div class="comp-name">${candidate['Candidate Name']}</div>
+                    <div class="comp-detail">You (Rank #${catRank})</div>
+                  </div>
+                  <div class="comp-marks mid">${candidate.Marks}</div>
+                </div>
+                <div class="comparison-row">
+                  <div class="comp-avatar">📍</div>
+                  <div class="comp-info">
+                    <div class="comp-name">${catBottom['Candidate Name']}</div>
+                    <div class="comp-detail">Last in ${category}</div>
+                  </div>
+                  <div class="comp-marks low">${catBottom.Marks}</div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Quick Stats Card -->
+            <div class="insight-card">
+              <h4>📋 Quick Stats</h4>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                <div style="background:var(--navy3);padding:10px;border-radius:8px;">
+                  <div style="font-size:11px;color:var(--muted);text-transform:uppercase;">Ahead of</div>
+                  <div style="font-family:'Rajdhani',sans-serif;font-size:20px;font-weight:700;color:#4CAF50;">${totalCandidates - globalRank}</div>
+                  <div style="font-size:10px;color:var(--muted);">candidates</div>
+                </div>
+                <div style="background:var(--navy3);padding:10px;border-radius:8px;">
+                  <div style="font-size:11px;color:var(--muted);text-transform:uppercase;">Behind</div>
+                  <div style="font-family:'Rajdhani',sans-serif;font-size:20px;font-weight:700;color:#F44336;">${globalRank - 1}</div>
+                  <div style="font-size:10px;color:var(--muted);">candidates</div>
+                </div>
+                <div style="background:var(--navy3);padding:10px;border-radius:8px;">
+                  <div style="font-size:11px;color:var(--muted);text-transform:uppercase;">Category</div>
+                  <div style="font-family:'Rajdhani',sans-serif;font-size:20px;font-weight:700;color:var(--saffron);">${catRank}/${totalInCat}</div>
+                  <div style="font-size:10px;color:var(--muted);">in ${category}</div>
+                </div>
+                <div style="background:var(--navy3);padding:10px;border-radius:8px;">
+                  <div style="font-size:11px;color:var(--muted);text-transform:uppercase;">Percentile</div>
+                  <div style="font-family:'Rajdhani',sans-serif;font-size:20px;font-weight:700;color:#81C784;">${percentile}%</div>
+                  <div style="font-size:10px;color:var(--muted);">overall</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="nav-candidate">
+            <button class="nav-btn" onclick="navigateInsight(-1)" ${index <= 0 ? 'disabled' : ''}>← Previous Candidate</button>
+            <button class="nav-btn" onclick="navigateInsight(1)" ${index >= filteredData.length - 1 ? 'disabled' : ''}>Next Candidate →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+  
+  document.body.insertAdjacentHTML('beforeend', modalHTML);
+}
+
+function closeInsight() {
+  const modal = document.querySelector('.modal-overlay');
+  if (modal) modal.remove();
+}
+
+function navigateInsight(direction) {
+  closeInsight();
+  setTimeout(() => {
+    const newIndex = currentInsightIndex + direction;
+    if (newIndex >= 0 && newIndex < filteredData.length) {
+      openInsight(newIndex);
+      // Scroll to the new row
+      const row = document.querySelector(`tr[data-index="${newIndex}"]`);
+      if (row) row.scrollIntoView({behavior:'smooth',block:'center'});
+    }
+  }, 200);
 }
 </script>
 </body>
