@@ -948,8 +948,9 @@ function openInsight(index) {
   // Calculate category rank
   const category = candidate['Category'] || 'GEN';
   const sameCategory = allData.filter(d => (d['Category'] || 'GEN') === category).sort((a,b) => parseFloat(a.Marks||0) - parseFloat(b.Marks||0));
-  const catRank = sameCategory.findIndex(d => d['Roll No'] === candidate['Roll No']) + 1;
+  const catPosition = sameCategory.findIndex(d => d['Roll No'] === candidate['Roll No']) + 1;
   const totalInCat = sameCategory.length;
+  const catRank = totalInCat - catPosition + 1; // Rank from top (how many behind including self)
   
   // Find neighbors in filtered results
   const prevCandidate = index > 0 ? filteredData[index - 1] : null;
