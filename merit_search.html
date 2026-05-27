@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RSSB Merit List Search</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Noto+Sans:wght@300;400;500&display=swap');
+
+  :root {
+    --saffron: #FF6B00;
+    --saffron-light: #FF8C38;
+    --saffron-dim: rgba(255,107,0,0.12);
+    --green: #138808;
+    --navy: #0A1628;
+    --navy2: #0F1F3D;
+    --navy3: #162847;
+    --surface: #111C30;
+    --surface2: #1A2840;
+    --border: rgba(255,255,255,0.08);
+    --text: #E8EDF5;
+    --muted: #7A8FA8;
+    --white: #ffffff;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--navy);
+    color: var(--text);
+    font-family: 'Noto Sans', sans-serif;
+    min-height: 100vh;
+    background-image:
+      radial-gradient(ellipse at 20% 0%, rgba(255,107,0,0.06) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 100%, rgba(19,136,8,0.05) 0%, transparent 50%);
+  }
+
+  header {
+    background: linear-gradient(135deg, var(--navy2) 0%, var(--navy3) 100%);
+    border-bottom: 2px solid var(--saffron);
+    padding: 18px 32px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.4);
+  }
+
+  .emblem {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--saffron), var(--saffron-light));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    flex-shrink: 0;
+    box-shadow: 0 0 16px rgba(255,107,0,0.4);
+  }
+
+  .header-text h1 {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    color: var(--white);
+  }
+
+  .header-text p {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 2px;
+    letter-spacing: 0.3px;
+  }
+
+  .badge {
+    margin-left: auto;
+    background: var(--saffron-dim);
+    border: 1px solid rgba(255,107,0,0.3);
+    color: var(--saffron-light);
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 5px 14px;
+    border-radius: 20px;
+    letter-spacing: 0.5px;
+  }
+
+  .main { max-width: 1300px; margin: 0 auto; padding: 28px 24px; }
+
+  /* Upload zone */
+  #upload-section {
+    background: var(--surface);
+    border: 2px dashed rgba(255,107,0,0.35);
+    border-radius: 16px;
+    padding: 48px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-bottom: 28px;
+  }
+  #upload-section:hover, #upload-section.drag-over {
+    border-color: var(--saffron);
+    background: rgba(255,107,0,0.05);
+  }
+  #upload-section h2 { font-family:'Rajdhani',sans-serif; font-size:22px; font-weight:700; margin-bottom:8px; }
+  #upload-section p { color:var(--muted); font-size:14px; }
+  #csv-input { display:none; }
+  .upload-btn {
+    display:inline-block; margin-top:18px;
+    background: linear-gradient(135deg, var(--saffron), var(--saffron-light));
+    color: white; border:none; padding:12px 32px;
+    border-radius:8px; font-family:'Rajdhani',sans-serif;
+    font-size:16px; font-weight:700; cursor:pointer; letter-spacing:0.5px;
+    transition: transform 0.1s, box-shadow 0.2s;
+    box-shadow: 0 4px 16px rgba(255,107,0,0.3);
+  }
+  .upload-btn:hover { transform:translateY(-1px); box-shadow: 0 6px 20px rgba(255,107,0,0.4); }
+  .upload-icon { font-size:48px; margin-bottom:12px; }
+
+  /* Progress */
+  #progress-bar-wrap { display:none; margin-top:12px; }
+  #progress-bar-wrap p { font-size:13px; color:var(--muted); margin-bottom:8px; }
+  .progress-track { background:rgba(255,255,255,0.1); border-radius:4px; height:6px; }
+  .progress-fill { background:linear-gradient(90deg,var(--saffron),var(--saffron-light)); height:6px; border-radius:4px; transition:width 0.3s; width:0%; }
+
+  /* Search panel */
+  #search-section { display:none; }
+
+  .stats-row {
+    display:flex; gap:12px; margin-bottom:20px; flex-wrap:wrap;
+  }
+  .stat-card {
+    background:var(--surface); border:1px solid var(--border);
+    border-radius:10px; padding:12px 20px; flex:1; min-width:120px;
+  }
+  .stat-card .val { font-family:'Rajdhani',sans-serif; font-size:26px; font-weight:700; color:var(--saffron); }
+  .stat-card .lbl { font-size:11px; color:var(--muted); margin-top:2px; text-transform:uppercase; letter-spacing:0.5px; }
+
+  .search-panel {
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:14px;
+    padding:22px;
+    margin-bottom:20px;
+  }
+
+  .search-panel h3 {
+    font-family:'Rajdhani',sans-serif; font-size:16px; font-weight:600;
+    color:var(--saffron); text-transform:uppercase; letter-spacing:1px; margin-bottom:16px;
+  }
+
+  .fields-grid {
+    display:grid; grid-template-columns:repeat(auto-fill, minmax(200px, 1fr)); gap:14px;
+  }
+
+  .field-group label {
+    display:block; font-size:11px; color:var(--muted); text-transform:uppercase;
+    letter-spacing:0.8px; margin-bottom:6px; font-weight:500;
+  }
+
+  .field-group input, .field-group select {
+    width:100%; background:var(--navy2); border:1px solid var(--border);
+    color:var(--text); border-radius:7px; padding:9px 13px;
+    font-family:'Noto Sans',sans-serif; font-size:14px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    outline:none;
+  }
+  .field-group input:focus, .field-group select:focus {
+    border-color:var(--saffron);
+    box-shadow: 0 0 0 3px rgba(255,107,0,0.15);
+  }
+  .field-group select option { background:var(--navy2); }
+
+  .btn-row { display:flex; gap:10px; margin-top:16px; align-items:center; }
+
+  .btn-search {
+    background:linear-gradient(135deg,var(--saffron),var(--saffron-light));
+    color:white; border:none; padding:10px 28px;
+    border-radius:7px; font-family:'Rajdhani',sans-serif;
+    font-size:15px; font-weight:700; cursor:pointer; letter-spacing:0.5px;
+    box-shadow:0 4px 14px rgba(255,107,0,0.3); transition:all 0.15s;
+  }
+  .btn-search:hover { transform:translateY(-1px); box-shadow:0 6px 18px rgba(255,107,0,0.4); }
+
+  .btn-clear {
+    background:transparent; color:var(--muted); border:1px solid var(--border);
+    padding:10px 20px; border-radius:7px; font-family:'Rajdhani',sans-serif;
+    font-size:15px; font-weight:600; cursor:pointer; transition:all 0.15s;
+  }
+  .btn-clear:hover { border-color:var(--muted); color:var(--text); }
+
+  .result-count { margin-left:auto; font-size:13px; color:var(--muted); }
+  .result-count span { color:var(--saffron); font-weight:600; }
+
+  /* Table */
+  .table-wrap {
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:14px;
+    overflow:hidden;
+  }
+
+  .table-header-bar {
+    padding:14px 20px;
+    display:flex; align-items:center; gap:12px;
+    border-bottom:1px solid var(--border);
+    background:var(--surface2);
+  }
+
+  .table-header-bar h3 {
+    font-family:'Rajdhani',sans-serif; font-size:15px; font-weight:600;
+    text-transform:uppercase; letter-spacing:1px;
+  }
+
+  .export-btn {
+    margin-left:auto; background:transparent;
+    border:1px solid rgba(19,136,8,0.4); color:#4CAF50;
+    padding:6px 16px; border-radius:6px;
+    font-family:'Rajdhani',sans-serif; font-size:13px; font-weight:600;
+    cursor:pointer; transition:all 0.15s;
+  }
+  .export-btn:hover { background:rgba(19,136,8,0.1); border-color:#4CAF50; }
+
+  .table-scroll { overflow-x:auto; max-height:520px; overflow-y:auto; }
+
+  table { width:100%; border-collapse:collapse; font-size:13px; }
+
+  thead tr { position:sticky; top:0; z-index:10; }
+
+  thead th {
+    background:var(--navy2); color:var(--muted);
+    padding:11px 14px; text-align:left;
+    font-size:11px; text-transform:uppercase; letter-spacing:0.8px;
+    font-weight:600; border-bottom:1px solid var(--border);
+    white-space:nowrap;
+  }
+
+  tbody tr {
+    border-bottom:1px solid rgba(255,255,255,0.04);
+    transition:background 0.15s;
+  }
+  tbody tr:hover { background:rgba(255,107,0,0.05); }
+
+  td { padding:11px 14px; vertical-align:middle; }
+
+  .merit-cell { font-family:'Rajdhani',sans-serif; font-weight:700; color:var(--saffron); font-size:15px; }
+  .name-cell { font-weight:500; color:var(--white); }
+  .marks-cell { font-family:'Rajdhani',sans-serif; font-weight:600; color:#64B5F6; }
+
+  .pill {
+    display:inline-block; padding:2px 10px; border-radius:20px;
+    font-size:11px; font-weight:600; letter-spacing:0.5px;
+  }
+  .pill-obc { background:rgba(255,193,7,0.15); color:#FFC107; border:1px solid rgba(255,193,7,0.3); }
+  .pill-gen { background:rgba(33,150,243,0.15); color:#42A5F5; border:1px solid rgba(33,150,243,0.3); }
+  .pill-sc  { background:rgba(156,39,176,0.15); color:#CE93D8; border:1px solid rgba(156,39,176,0.3); }
+  .pill-st  { background:rgba(76,175,80,0.15);  color:#81C784; border:1px solid rgba(76,175,80,0.3); }
+  .pill-ews { background:rgba(255,87,34,0.15);  color:#FF8A65; border:1px solid rgba(255,87,34,0.3); }
+  .pill-other { background:rgba(255,255,255,0.08); color:var(--muted); border:1px solid var(--border); }
+
+  .pill-male   { background:rgba(33,150,243,0.12); color:#64B5F6; border:1px solid rgba(33,150,243,0.2); }
+  .pill-female { background:rgba(233,30,99,0.12);  color:#F48FB1; border:1px solid rgba(233,30,99,0.2); }
+
+  .tsp-yes { background:rgba(19,136,8,0.15); color:#81C784; border:1px solid rgba(19,136,8,0.3); }
+
+  .empty-state {
+    padding:60px 20px; text-align:center; color:var(--muted);
+  }
+  .empty-state .icon { font-size:40px; margin-bottom:12px; }
+  .empty-state p { font-size:15px; }
+
+  /* Pagination */
+  .pagination {
+    display:flex; align-items:center; justify-content:center; gap:6px;
+    padding:14px 20px; border-top:1px solid var(--border);
+  }
+  .page-btn {
+    background:var(--navy2); border:1px solid var(--border); color:var(--text);
+    padding:6px 12px; border-radius:6px; cursor:pointer; font-size:13px;
+    font-family:'Rajdhani',sans-serif; font-weight:600; transition:all 0.15s;
+    min-width:36px; text-align:center;
+  }
+  .page-btn:hover:not(:disabled) { border-color:var(--saffron); color:var(--saffron); }
+  .page-btn.active { background:var(--saffron); border-color:var(--saffron); color:white; }
+  .page-btn:disabled { opacity:0.35; cursor:default; }
+  .page-info { font-size:12px; color:var(--muted); padding:0 8px; }
+
+  mark { background:rgba(255,107,0,0.3); color:var(--white); border-radius:2px; padding:0 2px; }
+
+  @media (max-width:600px) {
+    header { padding:12px 16px; }
+    .header-text h1 { font-size:17px; }
+    .main { padding:16px 12px; }
+    .fields-grid { grid-template-columns:1fr 1fr; }
+    #upload-section { padding:28px 16px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="emblem">🏛️</div>
+  <div class="header-text">
+    <h1>RSSB Merit List — Teacher Level 2</h1>
+    <p>Rajasthan Staff Selection Board · Science / Maths</p>
+  </div>
+  <div class="badge" id="total-badge" style="display:none">0 Records</div>
+</header>
+
+<div class="main">
+
+  <!-- Upload Section -->
+  <div id="upload-section" onclick="document.getElementById('csv-input').click()"
+       ondragover="event.preventDefault();this.classList.add('drag-over')"
+       ondragleave="this.classList.remove('drag-over')"
+       ondrop="handleDrop(event)">
+    <div class="upload-icon">📂</div>
+    <h2>Load the Merit List CSV</h2>
+    <p>Drop <strong>merit_list.csv</strong> here, or click to browse</p>
+    <button class="upload-btn" onclick="event.stopPropagation();document.getElementById('csv-input').click()">
+      Choose File
+    </button>
+    <div id="progress-bar-wrap">
+      <p id="progress-text">Parsing records…</p>
+      <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+    </div>
+    <input type="file" id="csv-input" accept=".csv" onchange="loadCSV(this.files[0])">
+  </div>
+
+  <!-- Search Section -->
+  <div id="search-section">
+
+    <div class="stats-row" id="stats-row"></div>
+
+    <div class="search-panel">
+      <h3>🔍 Search Filters</h3>
+      <div class="fields-grid">
+        <div class="field-group">
+          <label>Candidate Name</label>
+          <input type="text" id="f-name" placeholder="e.g. Ramesh or Kumari" oninput="debSearch()">
+        </div>
+        <div class="field-group">
+          <label>Roll Number</label>
+          <input type="text" id="f-roll" placeholder="e.g. 493009" oninput="debSearch()">
+        </div>
+        <div class="field-group">
+          <label>Father Name</label>
+          <input type="text" id="f-father" placeholder="Partial name ok" oninput="debSearch()">
+        </div>
+        <div class="field-group">
+          <label>Mother Name</label>
+          <input type="text" id="f-mother" placeholder="Partial name ok" oninput="debSearch()">
+        </div>
+        <div class="field-group">
+          <label>Gender</label>
+          <select id="f-gender" onchange="doSearch()">
+            <option value="">All</option>
+            <option>MALE</option>
+            <option>FEMALE</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label>Category</label>
+          <select id="f-cat" onchange="doSearch()">
+            <option value="">All</option>
+            <option>GEN</option>
+            <option>OBC</option>
+            <option>SC</option>
+            <option>ST</option>
+            <option>EWS</option>
+            <option>MBC</option>
+            <option>SBC</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label>TSP Area</label>
+          <select id="f-tsp" onchange="doSearch()">
+            <option value="">All</option>
+            <option value="YES">YES (TSP)</option>
+            <option value="">NO (Non-TSP)</option>
+            <option value="__no__">NO (Non-TSP)</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label>Merit Rank Range</label>
+          <input type="text" id="f-merit" placeholder="e.g. 1-100 or 500" oninput="debSearch()">
+        </div>
+        <div class="field-group">
+          <label>Marks Range</label>
+          <input type="text" id="f-marks" placeholder="e.g. 230-245" oninput="debSearch()">
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn-search" onclick="doSearch()">Search</button>
+        <button class="btn-clear" onclick="clearAll()">Clear All</button>
+        <div class="result-count" id="result-count"></div>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <div class="table-header-bar">
+        <h3>Results</h3>
+        <button class="export-btn" onclick="exportResults()">⬇ Export Results CSV</button>
+      </div>
+      <div class="table-scroll">
+        <table id="results-table">
+          <thead>
+            <tr>
+              <th>Merit</th>
+              <th>Marks</th>
+              <th>Roll No</th>
+              <th>Candidate Name</th>
+              <th>Father Name</th>
+              <th>Mother Name</th>
+              <th>Gender</th>
+              <th>Category</th>
+              <th>Sub Cat</th>
+              <th>TSP</th>
+            </tr>
+          </thead>
+          <tbody id="table-body"></tbody>
+        </table>
+      </div>
+      <div class="pagination" id="pagination"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+let allData = [];
+let filteredData = [];
+let currentPage = 1;
+const PAGE_SIZE = 50;
+let debounceTimer;
+
+function debSearch() {
+  clearTimeout(debounceTimer);
+  debounceTimer = setTimeout(doSearch, 300);
+}
+
+function handleDrop(e) {
+  e.preventDefault();
+  document.getElementById('upload-section').classList.remove('drag-over');
+  const file = e.dataTransfer.files[0];
+  if (file) loadCSV(file);
+}
+
+function loadCSV(file) {
+  if (!file) return;
+  document.getElementById('progress-bar-wrap').style.display = 'block';
+  document.querySelector('.upload-btn').style.display = 'none';
+
+  let rowCount = 0;
+  allData = [];
+
+  Papa.parse(file, {
+    header: true,
+    skipEmptyLines: true,
+    worker: false,
+    step: function(result) {
+      allData.push(result.data);
+      rowCount++;
+      if (rowCount % 5000 === 0) {
+        const pct = Math.min(95, (rowCount / 60000) * 100);
+        document.getElementById('progress-fill').style.width = pct + '%';
+        document.getElementById('progress-text').textContent = `Loading… ${rowCount.toLocaleString()} records`;
+      }
+    },
+    complete: function() {
+      document.getElementById('progress-fill').style.width = '100%';
+      document.getElementById('progress-text').textContent = `✓ ${allData.length.toLocaleString()} records loaded!`;
+      setTimeout(initSearch, 400);
+    }
+  });
+}
+
+function initSearch() {
+  document.getElementById('upload-section').style.display = 'none';
+  document.getElementById('search-section').style.display = 'block';
+  document.getElementById('total-badge').style.display = '';
+  document.getElementById('total-badge').textContent = allData.length.toLocaleString() + ' Records';
+
+  // Stats
+  const males = allData.filter(r => r.Gender === 'MALE').length;
+  const females = allData.filter(r => r.Gender === 'FEMALE').length;
+  const tsp = allData.filter(r => r.TSP === 'YES').length;
+  const cats = {};
+  allData.forEach(r => { cats[r.Category] = (cats[r.Category]||0)+1; });
+
+  const statsHtml = [
+    { val: allData.length.toLocaleString(), lbl: 'Total Candidates' },
+    { val: males.toLocaleString(), lbl: 'Male' },
+    { val: females.toLocaleString(), lbl: 'Female' },
+    { val: tsp.toLocaleString(), lbl: 'TSP Candidates' },
+    { val: (cats['OBC']||0).toLocaleString(), lbl: 'OBC' },
+    { val: (cats['GEN']||0).toLocaleString(), lbl: 'General' },
+    { val: (cats['SC']||0).toLocaleString(), lbl: 'SC' },
+    { val: (cats['EWS']||0).toLocaleString(), lbl: 'EWS' },
+  ].map(s => `<div class="stat-card"><div class="val">${s.val}</div><div class="lbl">${s.lbl}</div></div>`).join('');
+  document.getElementById('stats-row').innerHTML = statsHtml;
+
+  doSearch();
+}
+
+function parseRange(str) {
+  str = str.trim();
+  if (!str) return null;
+  if (str.includes('-')) {
+    const parts = str.split('-');
+    return { min: parseFloat(parts[0]), max: parseFloat(parts[1]) };
+  }
+  const n = parseFloat(str);
+  if (!isNaN(n)) return { min: n, max: n };
+  return null;
+}
+
+function doSearch() {
+  const name = document.getElementById('f-name').value.trim().toUpperCase();
+  const roll = document.getElementById('f-roll').value.trim();
+  const father = document.getElementById('f-father').value.trim().toUpperCase();
+  const mother = document.getElementById('f-mother').value.trim().toUpperCase();
+  const gender = document.getElementById('f-gender').value;
+  const cat = document.getElementById('f-cat').value;
+  const tspVal = document.getElementById('f-tsp').value;
+  const meritRange = parseRange(document.getElementById('f-merit').value);
+  const marksRange = parseRange(document.getElementById('f-marks').value);
+
+  filteredData = allData.filter(r => {
+    if (name && !(r['Candidate Name']||'').toUpperCase().includes(name)) return false;
+    if (roll && !(r['Roll No']||'').includes(roll)) return false;
+    if (father && !(r['Father Name']||'').toUpperCase().includes(father)) return false;
+    if (mother && !(r['Mother Name']||'').toUpperCase().includes(mother)) return false;
+    if (gender && r.Gender !== gender) return false;
+    if (cat && r.Category !== cat) return false;
+    if (tspVal === 'YES' && r.TSP !== 'YES') return false;
+    if (tspVal === '__no__' && r.TSP === 'YES') return false;
+    if (meritRange) {
+      const m = parseInt(r.Merit);
+      if (isNaN(m) || m < meritRange.min || m > meritRange.max) return false;
+    }
+    if (marksRange) {
+      const m = parseFloat(r.Marks);
+      if (isNaN(m) || m < marksRange.min || m > marksRange.max) return false;
+    }
+    return true;
+  });
+
+  currentPage = 1;
+  renderTable();
+  renderPagination();
+
+  const rc = document.getElementById('result-count');
+  rc.innerHTML = `Found <span>${filteredData.length.toLocaleString()}</span> result${filteredData.length!==1?'s':''}`;
+}
+
+function highlight(text, query) {
+  if (!query || !text) return escHtml(text||'');
+  const idx = text.toUpperCase().indexOf(query.toUpperCase());
+  if (idx === -1) return escHtml(text);
+  return escHtml(text.slice(0,idx)) + '<mark>' + escHtml(text.slice(idx, idx+query.length)) + '</mark>' + escHtml(text.slice(idx+query.length));
+}
+
+function escHtml(s) {
+  return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function catPill(cat) {
+  const cls = { OBC:'pill-obc', GEN:'pill-gen', SC:'pill-sc', ST:'pill-st', EWS:'pill-ews' }[cat] || 'pill-other';
+  return cat ? `<span class="pill ${cls}">${escHtml(cat)}</span>` : '';
+}
+
+function genderPill(g) {
+  const cls = g==='MALE'?'pill-male':'pill-female';
+  return g ? `<span class="pill ${cls}">${escHtml(g)}</span>` : '';
+}
+
+function renderTable() {
+  const nameQ = document.getElementById('f-name').value.trim();
+  const fatherQ = document.getElementById('f-father').value.trim();
+  const motherQ = document.getElementById('f-mother').value.trim();
+  const rollQ = document.getElementById('f-roll').value.trim();
+
+  const start = (currentPage-1)*PAGE_SIZE;
+  const pageData = filteredData.slice(start, start+PAGE_SIZE);
+  const tbody = document.getElementById('table-body');
+
+  if (pageData.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="10"><div class="empty-state"><div class="icon">🔎</div><p>No results found. Try adjusting your search filters.</p></div></td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = pageData.map(r => `
+    <tr>
+      <td class="merit-cell">#${escHtml(r.Merit)}</td>
+      <td class="marks-cell">${escHtml(r.Marks)}</td>
+      <td>${highlight(r['Roll No'], rollQ)}</td>
+      <td class="name-cell">${highlight(r['Candidate Name'], nameQ)}</td>
+      <td>${highlight(r['Father Name'], fatherQ)}</td>
+      <td>${highlight(r['Mother Name'], motherQ)}</td>
+      <td>${genderPill(r.Gender)}</td>
+      <td>${catPill(r.Category)}</td>
+      <td>${escHtml(r['Sub Category']||'')}</td>
+      <td>${r.TSP==='YES' ? '<span class="pill tsp-yes">✓ TSP</span>' : ''}</td>
+    </tr>
+  `).join('');
+}
+
+function renderPagination() {
+  const totalPages = Math.ceil(filteredData.length / PAGE_SIZE);
+  const pg = document.getElementById('pagination');
+  if (totalPages <= 1) { pg.innerHTML=''; return; }
+
+  let html = `<button class="page-btn" onclick="goPage(${currentPage-1})" ${currentPage===1?'disabled':''}>‹ Prev</button>`;
+
+  let pages = [];
+  if (totalPages <= 7) {
+    for (let i=1;i<=totalPages;i++) pages.push(i);
+  } else {
+    pages = [1,2];
+    if (currentPage > 4) pages.push('...');
+    for (let i=Math.max(3,currentPage-1); i<=Math.min(totalPages-2,currentPage+1); i++) pages.push(i);
+    if (currentPage < totalPages-3) pages.push('...');
+    pages.push(totalPages-1, totalPages);
+    pages = [...new Set(pages)];
+  }
+
+  pages.forEach(p => {
+    if (p==='...') html += `<span class="page-info">…</span>`;
+    else html += `<button class="page-btn ${p===currentPage?'active':''}" onclick="goPage(${p})">${p}</button>`;
+  });
+
+  html += `<button class="page-btn" onclick="goPage(${currentPage+1})" ${currentPage===totalPages?'disabled':''}>Next ›</button>`;
+  html += `<span class="page-info">Page ${currentPage} of ${totalPages.toLocaleString()} · ${filteredData.length.toLocaleString()} records</span>`;
+  pg.innerHTML = html;
+}
+
+function goPage(n) {
+  const totalPages = Math.ceil(filteredData.length / PAGE_SIZE);
+  if (n < 1 || n > totalPages) return;
+  currentPage = n;
+  renderTable();
+  renderPagination();
+  document.querySelector('.table-scroll').scrollTop = 0;
+}
+
+function clearAll() {
+  ['f-name','f-roll','f-father','f-mother'].forEach(id => document.getElementById(id).value='');
+  ['f-gender','f-cat','f-tsp'].forEach(id => document.getElementById(id).value='');
+  document.getElementById('f-merit').value='';
+  document.getElementById('f-marks').value='';
+  doSearch();
+}
+
+function exportResults() {
+  const headers = ['Merit','Marks','Roll No','Candidate Name','Father Name','Mother Name','Gender','Category','Sub Category','TSP'];
+  const rows = filteredData.map(r => headers.map(h => `"${(r[h]||'').replace(/"/g,'""')}"`).join(','));
+  const csv = [headers.join(','), ...rows].join('\n');
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+  a.download = 'filtered_results.csv';
+  a.click();
+}
+</script>
+</body>
+</html>
