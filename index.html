@@ -90,7 +90,123 @@
     letter-spacing: 0.5px;
   }
 
-  .main { max-width: 1300px; margin: 0 auto; padding: 28px 24px; }
+  /* Watermark Section */
+  .watermark-section {
+    background: linear-gradient(135deg, rgba(255,107,0,0.08) 0%, rgba(19,136,8,0.08) 100%);
+    border: 1px solid rgba(255,107,0,0.2);
+    border-radius: 16px;
+    padding: 24px 20px;
+    text-align: center;
+    margin: 24px auto;
+    max-width: 800px;
+    animation: fadeInUp 0.8s ease-out;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .watermark-section::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255,107,0,0.03) 0%, transparent 70%);
+    animation: pulse 4s ease-in-out infinite;
+  }
+  
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); opacity: 0.5; }
+    50% { transform: scale(1.1); opacity: 0.8; }
+  }
+  
+  .watermark-content {
+    position: relative;
+    z-index: 1;
+  }
+  
+  .watermark-heart {
+    font-size: 32px;
+    display: inline-block;
+    animation: heartbeat 1.5s ease-in-out infinite;
+    margin: 0 8px;
+  }
+  
+  @keyframes heartbeat {
+    0%, 100% { transform: scale(1); }
+    25% { transform: scale(1.2); }
+    50% { transform: scale(1); }
+    75% { transform: scale(1.1); }
+  }
+  
+  .watermark-text {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 16px;
+    color: var(--text);
+    font-weight: 500;
+    letter-spacing: 0.5px;
+  }
+  
+  .watermark-link {
+    color: var(--saffron-light);
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.2s;
+    border-bottom: 1px dashed rgba(255,107,0,0.4);
+    padding-bottom: 2px;
+  }
+  
+  .watermark-link:hover {
+    color: var(--saffron);
+    border-bottom-style: solid;
+    text-shadow: 0 0 12px rgba(255,107,0,0.5);
+  }
+  
+  .watermark-sub {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 6px;
+    font-family: 'Noto Sans', sans-serif;
+  }
+  
+  /* Visit Counter */
+  .visit-counter {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 14px;
+    padding: 8px 16px;
+    background: rgba(255,107,0,0.1);
+    border: 1px solid rgba(255,107,0,0.25);
+    border-radius: 20px;
+    font-size: 13px;
+    color: var(--text);
+    animation: fadeInUp 1s ease-out 0.3s both;
+  }
+  
+  .counter-icon {
+    font-size: 16px;
+  }
+  
+  .counter-label {
+    color: var(--muted);
+    font-weight: 400;
+  }
+  
+  .counter-value {
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--saffron-light);
+    letter-spacing: 0.5px;
+  }
+
+  .main { max-width: 1300px; margin: 0 auto; padding: 0 24px 28px; }
 
   /* Upload zone */
   #upload-section {
@@ -314,6 +430,22 @@
 
 <div class="main">
 
+  <!-- Watermark Section -->
+  <div class="watermark-section">
+    <div class="watermark-content">
+      <div class="watermark-text">
+        Made with <span class="watermark-heart">💖</span> by 
+        <a href="https://github.com/pavnxet/3rd-grade-result/tree/github-csv-search-page-a7812" class="watermark-link" target="_blank" rel="noopener noreferrer">pavnxet</a>
+      </div>
+      <div class="watermark-sub">GitHub CSV Search Page</div>
+      <div class="visit-counter" id="visit-counter">
+        <span class="counter-icon">👁️</span>
+        <span class="counter-label">Page Visits: </span>
+        <span class="counter-value" id="visit-count">Loading...</span>
+      </div>
+    </div>
+  </div>
+
   <!-- Upload Section -->
   <div id="upload-section">
     <div class="upload-icon">⏳</div>
@@ -433,8 +565,46 @@ let currentPage = 1;
 const PAGE_SIZE = 50;
 let debounceTimer;
 
+// Visit Counter using multiple fallback services for reliability
+async function initVisitCounter() {
+  // Fetch visit count from GitHub-hosted counter.json
+  async function fetchVisitCount() {
+    try {
+      // Add cache-busting timestamp to prevent caching
+      const timestamp = new Date().getTime();
+      const response = await fetch(`counter.json?t=${timestamp}`, {
+        cache: 'no-cache'
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch counter');
+      }
+      
+      const data = await response.json();
+      return data.count || 0;
+    } catch (error) {
+      console.error('Error fetching visit count:', error);
+      throw error;
+    }
+  }
+  
+  const counterElement = document.getElementById('visit-count');
+  
+  try {
+    const count = await fetchVisitCount();
+    // Format with commas for readability
+    const formattedCount = count.toLocaleString();
+    counterElement.textContent = formattedCount;
+  } catch (error) {
+    console.error('Error loading visit counter:', error);
+    counterElement.textContent = '—';
+    counterElement.title = 'Counter updates on each page build';
+  }
+}
+
 // Auto-load the CSV file on page load
 window.addEventListener('DOMContentLoaded', function() {
+  initVisitCounter();
   fetchCSV();
 });
 
