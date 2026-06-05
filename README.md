@@ -23,6 +23,11 @@ A high-performance, serverless, client-side search engine and analytics dashboar
     *   **Gap Analysis**: Measures marks gap (leads and deficits) between the candidate and the candidates ranked immediately above and below them.
     *   **Category Benchmarking**: Compares candidate marks against category average, highest marks, and lowest marks.
     *   **Global Performance Summary**: Displays candidates ahead/behind stats.
+*   **📄 Clickable PDF Scorecard Export**: Save a candidate's detailed report card as a beautifully styled vector PDF. The entire document page acts as an embedded hyperlink—clicking or touching it anywhere redirects the reader back to the live website (`https://pavnxet.github.io/3rd-grade-result/`) for instant online verification.
+*   **🔗 URL Hash Routing**: Native SPA routing using hashes (`#science`, `#hindi`, `#sst`). Allows direct sharing, bookmarking, and page refreshes on static hosts (like GitHub Pages) without triggering 404 server errors.
+*   **🏠 Header Navigation & Loader Escape**: 
+    *   Features a **Home** button in the header bar and clickable header logos/titles to easily return to the main subject selector.
+    *   Includes a **Cancel & Go Back** button inside the loading section, allowing users to safely escape from stuck loading states if a network request hangs.
 *   **Export Support**: Export filtered query search results back into a clean CSV file (`filtered_results.csv`) with a single click.
 *   **Zero-Server Architecture**: Completely static and ready for direct deployment on GitHub Pages or any static host.
 
