@@ -5,16 +5,104 @@ This document serves as an exhaustive, top-class engineering blueprint, system d
 ---
 
 ## 📋 Table of Contents
-1. [Architectural Principles & Core Flow](#1-architectural-principles--core-flow)
-2. [Data Engineering & Raw CSV Cleaning](#2-data-engineering--raw-csv-cleaning)
-3. [CSV Parsing & Header Normalization](#3-csv-parsing--header-normalization)
-4. [Routing & Navigation (Hash-Based SPA)](#4-routing--navigation-hash-based-spa)
-5. [UI/UX & Interactive Design System](#5-uiux--interactive-design-system)
-6. [State Management, Caching, & Search Filtering](#6-state-management-caching--search-filtering)
-7. [Advanced On-the-Fly Analytics & Insights](#7-advanced-on-the-fly-analytics--insights)
-8. [Vector PDF Scorecard Generation & Verification Linking](#8-vector-pdf-scorecard-generation--verification-linking)
-9. [Verification, QA, & Boundary Case Checklist](#9-verification-qa--boundary-case-checklist)
-10. [AI Agent Prompt Templates for Subagent Delegation](#10-ai-agent-prompt-templates-for-subagent-delegation)
+* [0. Base HTML Skeleton](#0-base-html-skeleton)
+* [1. Architectural Principles & Core Flow](#1-architectural-principles--core-flow)
+* [2. Data Engineering & Raw CSV Cleaning](#2-data-engineering--raw-csv-cleaning)
+* [3. CSV Parsing & Header Normalization](#3-csv-parsing--header-normalization)
+* [4. Routing, Navigation, & Error Recovery](#4-routing-navigation--error-recovery)
+* [5. UI/UX component Wireframe Layouts](#5-uiux-component-wireframe-layouts)
+* [6. State Management, Caching, & Search Filtering](#6-state-management-caching--search-filtering)
+* [7. Advanced On-the-Fly Analytics & Insights](#7-advanced-on-the-fly-analytics--insights)
+* [8. Vector PDF Scorecard Generation & Verification Linking](#8-vector-pdf-scorecard-generation-and-verification-linking)
+* [9. Verification, QA, & Boundary Case Checklist](#9-verification-qa--boundary-case-checklist)
+* [10. AI Agent Prompt Templates with Performance & Accessibility Constraints](#10-ai-agent-prompt-templates-with-performance--accessibility-constraints)
+
+---
+
+## 0. Base HTML Skeleton
+
+To ensure developers and AI subagents understand the structural DOM layouts, use the base HTML skeleton below. It establishes the load order of script dependencies and displays all primary functional container IDs.
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RSSB Merit List Search</title>
+  
+  <!-- CDN Load Order: PapaParse first for data parsing, html2pdf.js second for scorecards -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  
+  <style>
+    /* Global Typography, HSL Tokens, and Component CSS (See Section 5) */
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header>
+    <div class="emblem">🦚</div>
+    <div class="header-text">
+      <h1>Rajasthan Staff Selection Board (RSSB)</h1>
+      <p id="header-subtitle">Rajasthan Staff Selection Board · Teacher Level 2</p>
+    </div>
+    <div style="margin-left: auto; display: flex; align-items: center; gap: 12px;">
+      <button id="home-btn" style="display: none;" onclick="goBack()">🏠 Home</button>
+      <div class="badge" id="total-badge" style="display: none;">0 Records</div>
+    </div>
+  </header>
+
+  <main class="main">
+    <!-- Watermark Card -->
+    <div class="watermark-section">
+      <div class="watermark-content">
+        <span class="watermark-text">Made with <span class="watermark-heart">💖</span> by 
+          <a href="https://github.com/pavnxet/3rd-grade-result" class="watermark-link" target="_blank">pavnxet</a>
+        </span>
+        <div class="watermark-sub">GitHub CSV Search Page</div>
+      </div>
+    </div>
+
+    <!-- Section 1: Subject Selector Section -->
+    <section id="selector-section">
+      <!-- Selector buttons generated here (See Section 5.1) -->
+    </section>
+
+    <!-- Section 2: Upload / Loader Section with Progress & Error Recovery -->
+    <section id="upload-section" style="display: none;">
+      <div class="upload-icon">⏳</div>
+      <h2 id="loader-title">Loading Merit List...</h2>
+      <p id="loader-subject">Fetching data...</p>
+      
+      <!-- Progress Indicator -->
+      <div id="progress-bar-wrap">
+        <p id="progress-text">Fetching records…</p>
+        <div class="progress-track">
+          <div class="progress-fill" id="progress-fill" style="width: 0%;"></div>
+        </div>
+      </div>
+      
+      <!-- Action buttons for cancelation & error recovery -->
+      <div id="loader-actions" style="margin-top:20px;">
+        <button id="retry-btn" style="display: none;" onclick="retryFetch()">🔄 Try Again</button>
+        <button class="back-btn" onclick="goBack()">← Cancel & Go Back</button>
+      </div>
+      <input type="file" id="csv-input" accept=".csv" style="display:none;">
+    </section>
+
+    <!-- Section 3: Search Panel & Results Table Grid -->
+    <section id="search-section" style="display: none;">
+      <!-- Search Filter form grid and results table are housed here (See Section 5.2 / 5.3) -->
+    </section>
+  </main>
+
+  <script>
+    // State management, parser execution, and dynamic routing logic (See sections 2, 3, 4, 6, 7, 8)
+  </script>
+</body>
+</html>
+```
 
 ---
 
@@ -222,7 +310,7 @@ function parseCleanedCSV(cleanedText, subject) {
 
 ---
 
-## 4. Routing & Navigation (Hash-Based SPA)
+## 4. Routing, Navigation, & Error Recovery
 
 On static hosting sites (like GitHub Pages), URLs like `/hindi` or `/sst` fail when the page is reloaded because the host tries to serve a directory or file that does not exist, resulting in a **404 Not Found** error. 
 
@@ -235,11 +323,16 @@ To solve this, implement a **Hash-Based Client-Side Router** (`#hindi`, `#sst`, 
 4. If a valid subject hash is found, load the subject view.
 5. If the hash is empty or invalid, return the user to the subject selection home page.
 
-### 4.2 Router Implementation:
+### 4.2 Network Error Recovery and Abort Flow:
+When downloading files over 5MB, users on poor connections may experience network timeouts or drops. A robust client-side implementation must:
+* **Abort Active Connections**: Use an `AbortController` to cancel any ongoing fetch request when the user cancels or switches views, preventing memory leaks and parallel download queues.
+* **Recover Gracefully**: If the fetch fails, update the UI loader to an error state. Display a prominent retry control panel containing a "Try Again" button that re-triggers the subject fetch process and resets the controller.
+
+### 4.3 Navigation & Fetch Controller Implementation:
 ```javascript
 // Data sources mapping
 const DATA_SOURCES = {
-  science: '3rd_science.csv', // Update with actual paths
+  science: 'merit_list.csv', 
   hindi: '3rd_hindi.csv',
   sst: '3rd_sst.csv'
 };
@@ -254,6 +347,7 @@ let currentSubject = null;
 let allData = [];
 let filteredData = [];
 let loadedSubjects = {}; // In-memory cache
+let currentFetchController = null; // Instantiated AbortController
 
 // Bind router events
 window.addEventListener('DOMContentLoaded', handleHashRoute);
@@ -278,9 +372,15 @@ function handleHashRoute() {
 }
 
 /**
- * Renders the home screen (Subject Selector grid)
+ * Renders the home screen (Subject Selector grid) and aborts any active fetch.
  */
 function showSelectorScreen() {
+  // Abort active fetch if the user goes back during a load
+  if (currentFetchController) {
+    currentFetchController.abort();
+    currentFetchController = null;
+  }
+
   document.getElementById('selector-section').style.display = 'block';
   document.getElementById('upload-section').style.display = 'none';
   document.getElementById('search-section').style.display = 'none';
@@ -321,15 +421,18 @@ function selectSubject(subject) {
     return;
   }
 
-  // Trigger Fetch workflow
+  // Set up loader screen state
   showLoader(subject);
   
-  // Implement a fetch abort controller for download cancellation
-  window.currentFetchController = new AbortController();
+  // Abort any active fetch before starting a new one
+  if (currentFetchController) {
+    currentFetchController.abort();
+  }
+  currentFetchController = new AbortController();
   
-  fetch(DATA_SOURCES[subject], { signal: window.currentFetchController.signal })
+  fetch(DATA_SOURCES[subject], { signal: currentFetchController.signal })
     .then(response => {
-      if (!response.ok) throw new Error('Network response error');
+      if (!response.ok) throw new Error(`HTTP status ${response.status} (${response.statusText})`);
       return response.text();
     })
     .then(text => {
@@ -338,22 +441,226 @@ function selectSubject(subject) {
     })
     .catch(err => {
       if (err.name === 'AbortError') {
-        console.log('Fetch aborted by user.');
-      } else {
-        document.getElementById('progress-text').textContent = '❌ Failed to load dataset.';
-        console.error(err);
+        console.log('Fetch request was aborted by user action.');
+        return;
       }
+      console.error('Fetch error:', err);
+      showLoaderErrorState(err.message || 'Check your internet connection.');
     });
+}
+
+/**
+ * Shows the Loader screen with initial progress bar states.
+ */
+function showLoader(subject) {
+  const name = SUBJECT_NAMES[subject];
+  document.getElementById('loader-title').textContent = `Loading ${name} Results...`;
+  document.getElementById('loader-subject').textContent = `Fetching data from ${DATA_SOURCES[subject]}`;
+  document.getElementById('progress-fill').style.width = '0%';
+  document.getElementById('progress-text').textContent = 'Fetching records…';
+  document.querySelector('.upload-icon').textContent = '⏳';
+  
+  // Toggle visibility (Progress bar visible, Retry button hidden)
+  document.getElementById('progress-bar-wrap').style.display = 'block';
+  document.getElementById('retry-btn').style.display = 'none';
+  
+  document.getElementById('selector-section').style.display = 'none';
+  document.getElementById('upload-section').style.display = 'block';
+  document.getElementById('search-section').style.display = 'none';
+}
+
+/**
+ * Transitions the loader view to a visible error block with recovery controls.
+ */
+function showLoaderErrorState(errorMessage) {
+  document.querySelector('.upload-icon').textContent = '⚠️';
+  document.getElementById('loader-title').textContent = 'Failed to Load Results';
+  document.getElementById('loader-subject').textContent = 'The system was unable to download the results file.';
+  document.getElementById('progress-text').textContent = `❌ Error: ${errorMessage}`;
+  
+  // Toggle controls (Hide progress bar, display Retry button)
+  document.getElementById('progress-bar-wrap').style.display = 'none';
+  document.getElementById('retry-btn').style.display = 'inline-block';
+}
+
+/**
+ * Invoked by the 'Try Again' button in the loader view to restart the fetch.
+ */
+function retryFetch() {
+  if (currentSubject) {
+    selectSubject(currentSubject);
+  }
+}
+
+/**
+ * Triggers selector view when back actions are fired.
+ */
+function goBack() {
+  showSelectorScreen();
 }
 ```
 
 ---
 
-## 5. UI/UX & Interactive Design System
+## 5. UI/UX Component Wireframe Layouts
 
-The application should have a premium visual design that looks professional and builds trust.
+The application should have a premium visual design that looks professional and builds trust. Below are wireframe-level HTML snippets detailing exactly how the panels, selectors, tables, and modal elements should be structured.
 
-### 5.1 Color Palette & Theme Tokens
+### 5.1 Subject Selector Card Grid (`#selector-section`)
+Displays interactive, large buttons with icons, titles, and target filenames.
+```html
+<div id="selector-section">
+  <h2>Select a Subject to View Results</h2>
+  <p>Choose the subject to load its merit list data</p>
+  <div class="subject-buttons">
+    <button class="subj-btn" onclick="selectSubject('science')">
+      <span class="icon">🔬</span>
+      <span class="name">Science / Maths</span>
+      <span class="file">merit_list.csv</span>
+    </button>
+    <button class="subj-btn" onclick="selectSubject('hindi')">
+      <span class="icon">📖</span>
+      <span class="name">Hindi</span>
+      <span class="file">3rd_hindi.csv</span>
+    </button>
+    <button class="subj-btn" onclick="selectSubject('sst')">
+      <span class="icon">🌍</span>
+      <span class="name">SST</span>
+      <span class="file">3rd_sst.csv</span>
+    </button>
+  </div>
+</div>
+```
+
+### 5.2 Search Filter Bar Layout
+A multi-column grid input layout with selects, range inputs, search metrics, and control buttons.
+```html
+<div class="search-panel">
+  <h3>🔍 Search Filters</h3>
+  <div class="fields-grid">
+    <div class="field-group">
+      <label for="f-name">Candidate Name</label>
+      <input type="text" id="f-name" placeholder="e.g. Ramesh or Kumari" oninput="handleSearchInput()">
+    </div>
+    <div class="field-group">
+      <label for="f-roll">Roll Number</label>
+      <input type="text" id="f-roll" placeholder="e.g. 493009" oninput="handleSearchInput()">
+    </div>
+    <div class="field-group">
+      <label for="f-father">Father Name</label>
+      <input type="text" id="f-father" placeholder="Partial name ok" oninput="handleSearchInput()">
+    </div>
+    <div class="field-group">
+      <label for="f-mother">Mother Name</label>
+      <input type="text" id="f-mother" placeholder="Partial name ok" oninput="handleSearchInput()">
+    </div>
+    <div class="field-group">
+      <label for="f-gender">Gender</label>
+      <select id="f-gender" onchange="doSearch()">
+        <option value="">All</option>
+        <option value="MALE">MALE</option>
+        <option value="FEMALE">FEMALE</option>
+      </select>
+    </div>
+    <div class="field-group">
+      <label for="f-cat">Category</label>
+      <select id="f-cat" onchange="doSearch()">
+        <option value="">All</option>
+        <option value="GEN">GEN</option>
+        <option value="OBC">OBC</option>
+        <option value="SC">SC</option>
+        <option value="ST">ST</option>
+        <option value="EWS">EWS</option>
+        <option value="MBC">MBC</option>
+      </select>
+    </div>
+    <div class="field-group">
+      <label for="f-tsp">TSP Area</label>
+      <select id="f-tsp" onchange="doSearch()">
+        <option value="">All</option>
+        <option value="YES">YES (TSP)</option>
+        <option value="__no__">NO (Non-TSP)</option>
+      </select>
+    </div>
+    <div class="field-group">
+      <label for="f-merit">Merit Rank Range</label>
+      <input type="text" id="f-merit" placeholder="e.g. 1-100 or 500" oninput="handleSearchInput()">
+    </div>
+    <div class="field-group">
+      <label for="f-marks">Marks Range</label>
+      <input type="text" id="f-marks" placeholder="e.g. 230-245" oninput="handleSearchInput()">
+    </div>
+  </div>
+  <div class="btn-row">
+    <button class="btn-search" onclick="doSearch()">Search</button>
+    <button class="btn-clear" onclick="clearAll()">Clear All</button>
+    <div class="result-count" id="result-count">Found <span>0</span> results</div>
+  </div>
+</div>
+```
+
+### 5.3 Results Table + Pagination Controls
+Scrollable table wrapper with sticky headers, table columns matching our normalized schema, and pagination.
+```html
+<div class="table-wrap">
+  <div class="table-header-bar">
+    <h3>Results</h3>
+    <button class="export-btn" onclick="exportResults()">⬇ Export Results CSV</button>
+  </div>
+  <div class="table-scroll">
+    <table id="results-table">
+      <thead>
+        <tr>
+          <th>Merit</th>
+          <th>Marks</th>
+          <th>Roll No</th>
+          <th>Candidate Name</th>
+          <th>Father Name</th>
+          <th>Mother Name</th>
+          <th>Gender</th>
+          <th>Category</th>
+          <th>Sub Cat</th>
+          <th>TSP</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody id="table-body">
+        <!-- Rows populated dynamically by renderTable() -->
+      </tbody>
+    </table>
+  </div>
+  <div class="pagination" id="pagination">
+    <!-- Populated dynamically by renderPagination() -->
+  </div>
+</div>
+```
+
+### 5.4 Candidate Detail Modal Shell
+The HTML structure generated on-the-fly or toggled in the DOM when a candidate row is clicked.
+```html
+<div class="modal-overlay" onclick="if(event.target===this) closeInsight()">
+  <div class="modal-content">
+    <div class="modal-header">
+      <div class="modal-title">📊 Candidate Insights</div>
+      <div style="display:flex; align-items:center; gap:10px;">
+        <button class="export-btn" id="modal-pdf-btn">📄 Save PDF</button>
+        <button class="modal-close" onclick="closeInsight()">×</button>
+      </div>
+    </div>
+    <div class="modal-body">
+      <div class="insight-grid">
+        <!-- dynamic Insight Cards: Rank Overview, Gap Analysis, Category Benchmark, Quick Stats -->
+      </div>
+      <div class="nav-candidate">
+        <button class="nav-btn" id="prev-candidate-btn">← Previous Candidate</button>
+        <button class="nav-btn" id="next-candidate-btn">Next Candidate →</button>
+      </div>
+    </div>
+  </div>
+</div>
+```
+
+### 5.5 Visual Theme Stylesheet Tokens
 Use modern dark-mode surfaces styled with custom CSS variables (themes referencing official RSSB colors like saffron and green):
 
 ```css
@@ -373,20 +680,14 @@ Use modern dark-mode surfaces styled with custom CSS variables (themes referenci
   --muted: #7A8FA8;       /* Subtle text gray */
   --white: #ffffff;
 }
-```
 
-### 5.2 Layout Requirements:
-1. **Typography**: Use high-legibility Google Fonts. For numeric data and titles, use **Rajdhani** (sans-serif, bold letter spacing). For detailed candidate cards and data tables, use **Noto Sans**.
-2. **Glassmorphism Panels**: Apply thin border accents (`1px solid var(--border)`) and subtle background blur:
-   ```css
-   .glass-panel {
-     background: rgba(17, 28, 48, 0.7);
-     backdrop-filter: blur(12px);
-     border: 1px solid var(--border);
-   }
-   ```
-3. **Responsive Grid Layout**: Search filters must display in a multi-column responsive grid (1 column on mobile, 2 on tablets, 3 or 4 on desktop screens).
-4. **Interactive States**: Hover effects on tables, cards, and buttons should use smooth transitions (`transition: all 0.2s ease`).
+/* Glassmorphism Panel Utility */
+.glass-panel {
+  background: rgba(17, 28, 48, 0.7);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
+}
+```
 
 ---
 
@@ -545,14 +846,23 @@ const categoryLowestMarks = parseFloat(sameCatList[0].Marks || 0);
 
 ---
 
-## 8. Vector PDF Scorecard Generation & Verification Linking
+## 8. Vector PDF Scorecard Generation and Verification Linking
 
 The printable scorecard must look clean, print correctly on paper, and allow results to be verified online.
 
+> [!WARNING]
+> **Relying on anchor wrapper tags (`<a>`) for PDF hyperlinks is best-effort and browser-dependent.**
+> Many PDF rendering engines, mobile viewers (such as iOS Safari built-in preview, Chrome mobile PDF reader), and standalone desktop applications (like Adobe Acrobat Reader or Apple Preview) strip out bounding-box hyperlink interactions or fail to parse HTML `<a>` tags wrapped around structural grid blocks.
+>
+> **Fallback Requirement:**
+> To ensure the result remains verifiable on paper or inside incompatible viewers, developers must render the validation URL as high-contrast visible text at the bottom of the scorecard. For example:
+> `Verification Online: https://pavnxet.github.io/3rd-grade-result/`
+
 ### 8.1 PDF Design Rules:
 1. **Light Theme**: The generated PDF should use a clean, white background to save ink and look professional. Do not use the app's dark-mode styles in the PDF.
-2. **Clickable Verification Area**: Wrap the entire template container in a link tag: `<a href="https://pavnxet.github.io/3rd-grade-result/" target="_blank">...</a>`. Modern PDF renderers convert this link wrapper into a clickable area across the whole page. Anyone viewing the PDF can click it to visit the online verification site.
+2. **Clickable Verification Area**: Wrap the entire template container in a link tag: `<a href="https://pavnxet.github.io/3rd-grade-result/" target="_blank">...</a>`.
 3. **Verification Note**: Display a clear notice at the top of the PDF: `💡 Click anywhere on this document to verify this result online`.
+4. **Fallback Text URL**: Print a visible verification URL in high-contrast text at the bottom of the document sheet.
 
 ### 8.2 PDF Generation Code:
 Include `html2pdf.js` via CDN:
@@ -703,10 +1013,16 @@ function downloadCandidatePDF(index) {
         </table>
       </div>
 
-      <!-- Verification Footer -->
+      <!-- Fallback Verification URL & Footer -->
       <div style="margin-top:40px; padding-top:15px; border-top:1px solid #eee; display:flex; justify-content:space-between; font-size:10px; color:#777;">
-        <div>Generated via RSSB Merit Search Portal · pavnxet</div>
-        <div>Date: ${new Date().toLocaleDateString()}</div>
+        <div>
+          <span>Generated via RSSB Merit Search Portal</span><br>
+          <span style="font-weight: bold; color: #FF6B00;">Verification Online: https://pavnxet.github.io/3rd-grade-result/</span>
+        </div>
+        <div style="text-align: right;">
+          <span>Developer: pavnxet</span><br>
+          <span>Date: ${new Date().toLocaleDateString()}</span>
+        </div>
       </div>
     </a>
   `;
@@ -738,39 +1054,46 @@ AI Agents working on this system must verify all checklist items before completi
 
 ---
 
-## 10. AI Agent Prompt Templates for Subagent Delegation
+## 10. AI Agent Prompt Templates with Performance & Accessibility Constraints
 
-Use the following detailed prompt templates when delegating tasks to subagents or initializing new sub-modules.
+Use the following highly specialized prompt templates when delegating tasks to subagents or initializing modules.
 
 ### 10.1 Template: CSV Cleansing Module
 ```markdown
 You are a Data Engineering Agent. Implement a JavaScript CSV text-cleansing pipeline that takes a raw, polluted CSV string and outputs a cleaned CSV string.
-Requirements:
+Requirements & Constraints:
 1. Ignore empty lines, comments (lines starting with '#'), and lines consisting only of commas.
 2. Ignore repeating headers (headers repeated on PDF page borders containing 'Merit,Marks,Roll').
 3. Keep only the first header occurrence.
 4. Filter out lines containing board-specific metadata noise ('Staff Selection Board', 'TEACHER LEVEL', 'ANNEXURE-1', 'Page X of Y').
 5. Ensure data rows begin with a digit representing the Merit Rank.
-Include complete test cases validating your logic against raw lines containing these boundary conditions.
+6. Performance Budget: Must process a 10MB CSV file in under 150ms on a standard low-end mobile device. Avoid inefficient nested loops or regex patterns susceptible to catastrophic backtracking.
+7. Encoding Support: Gracefully handle UTF-8 with Byte Order Mark (BOM) signatures and non-ASCII character encoding.
+Include complete unit tests validating your logic against garbage headers, carriage return variations (\r\n vs \n), and empty list arrays.
 ```
 
-### 10.2 Template: SPA Router & Loader Cancellation
+### 10.2 Template: Routing, Abort Controller, & Error UI
 ```markdown
 You are a Core Routing Agent. Implement a Hash-Based Client-Side SPA Router in JavaScript.
-Requirements:
+Requirements & Constraints:
 1. Map URL hashes (#science, #hindi, #sst) to subject keys.
 2. Intercept 'DOMContentLoaded' and 'hashchange' events.
 3. Show the Subject Selection page if the hash is empty/invalid.
-4. Implement an active loading transition overlay with a cancel button when fetching a subject file.
-5. In case of cancelation, abort the fetch request using AbortController, clear the loading state, and return to the subject selector home view.
+4. Implement an active loading transition overlay with a Cancel button when fetching a subject file.
+5. Error Recovery & Aborting: If a network fetch fails, transition the loader panel to a visible error state displaying the failure reason. Provide a "Try Again" button to re-trigger the download. Reset and invoke AbortController to cleanly abort fetch requests when users cancel or navigate away.
+6. Accessibility Requirements: Wrap loader alerts and error states in semantic live-regions (role="alert" or aria-live="assertive"). Ensure keyboard accessibility is maintained: focus must trap within the error/loader box and allow full keyboard operability.
+7. Mobile Breakpoints: All navigation buttons must have a minimum touch-target size of 44x44px. The loader box must scale responsively down to 320px viewports without horizontal clipping.
 ```
 
-### 10.3 Template: dynamic Scorecard PDF Export
+### 10.3 Template: Dynamic PDF Scorecard Generator
 ```markdown
 You are a UI-to-PDF Conversion Agent. Implement the candidate scorecard export function using html2pdf.js.
-Requirements:
+Requirements & Constraints:
 1. Generate an HTML node dynamically in memory containing candidate metrics (Global Rank, Category Rank, Percentile, Category Averages, Marks).
 2. Apply clean light-themed styling suited for printed media (no dark background, clear padding, professional borders).
-3. Wrap the entire scorecard wrapper element in an anchor tag pointing to the online verification dashboard 'https://pavnxet.github.io/3rd-grade-result/' to create an active verification hyperlink in the output PDF.
-4. Download the document using the filename format: 'scorecard_[RollNo]_[CandidateName].pdf'.
+3. Wrap the scorecard block inside an anchor tag pointing to the online verification dashboard 'https://pavnxet.github.io/3rd-grade-result/'.
+4. Fallback URL requirement: Display a high-contrast, human-readable textual verification URL ('Verification Online: https://pavnxet.github.io/3rd-grade-result/') at the bottom of the scorecard. This ensures verifiability if viewers or printouts strip the anchor bounding box.
+5. Rendering Budget: PDF rendering must execute in under 2 seconds. Clean up DOM nodes immediately after download triggers to prevent browser memory leaks.
+6. Print Formatting: Constrain the layout to fit cleanly on a single A4 page without vertical page overflows. Use print-safe color values ensuring a minimum WCAG AA contrast ratio of 4.5:1.
+7. Vector Output quality: Configure html2canvas to render at a minimum scale of 2 to support crisp, vector-grade printing.
 ```
