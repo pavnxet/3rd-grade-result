@@ -16,6 +16,7 @@ This document serves as an exhaustive, top-class engineering blueprint, system d
 * [8. Vector PDF Scorecard Generation & Verification Linking](#8-vector-pdf-scorecard-generation-and-verification-linking)
 * [9. Verification, QA, & Boundary Case Checklist](#9-verification-qa--boundary-case-checklist)
 * [10. AI Agent Prompt Templates with Performance & Accessibility Constraints](#10-ai-agent-prompt-templates-with-performance--accessibility-constraints)
+* [11. Real-Time Visitor and Click Tracking (Client-Side)](#11-real-time-visitor-and-click-tracking-client-side)
 
 ---
 
@@ -1097,3 +1098,96 @@ Requirements & Constraints:
 6. Print Formatting: Constrain the layout to fit cleanly on a single A4 page without vertical page overflows. Use print-safe color values ensuring a minimum WCAG AA contrast ratio of 4.5:1.
 7. Vector Output quality: Configure html2canvas to render at a minimum scale of 2 to support crisp, vector-grade printing.
 ```
+
+---
+
+## 11. Real-Time Visitor and Click Tracking (Client-Side)
+
+To track usage metrics without incurring backend server costs, database maintenance, or storage fees, the application integrates a client-side click/view tracking system. It leverages a free, serverless, and privacy-friendly key-value API (`countapi.mileshilliard.com`).
+
+### 11.1 Tracking Strategy
+1. **Subject-Specific Keying**: Each subject has its own unique count key in the format `pavnxet-3rd-grade-result-{subject}`.
+2. **Dynamic UI Badging**: Counts are displayed as small rounded badges (e.g. `👁️ 1,234`) inside each subject selection button.
+3. **On-Load Retrieval**: When the home selector screen is rendered, the application makes parallel async GET requests to retrieve the current counts for all subjects using `/api/v1/get/`.
+4. **Triggered Increments**: When a subject is selected (either by clicking the subject button or by navigating directly via a URL hash route like `#hindi`), the application triggers an increment GET request to `/api/v1/hit/` and updates the respective UI badge in real-time.
+5. **Direct View Tracking**: For standalone views like `merit_search.html` (which skips the selector screen and auto-loads Science/Maths), a silent fetch hits the Science API endpoint on `DOMContentLoaded` to capture direct arrivals.
+
+### 11.2 Key Code Implementation
+
+#### CSS Styling
+```css
+.subj-btn .views {
+  font-size: 11px;
+  color: var(--saffron);
+  background: rgba(255,107,0,0.1);
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-weight: 500;
+  margin-top: 4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border: 1px solid rgba(255,107,0,0.2);
+  transition: all 0.2s;
+}
+```
+
+#### HTML Placement
+```html
+<button class="subj-btn" onclick="selectSubject('science')">
+  <span class="icon">🔬</span>
+  <span class="name">Science / Maths</span>
+  <span class="file">merit_list.csv</span>
+  <span class="views" id="count-science" style="display: none;">👁️ --</span>
+</button>
+```
+
+#### JavaScript Logic
+```javascript
+// Load view counts for all subjects
+function loadViewCounts() {
+  const subjects = ['science', 'hindi', 'sst'];
+  subjects.forEach(subject => {
+    fetch(`https://countapi.mileshilliard.com/api/v1/get/pavnxet-3rd-grade-result-${subject}`)
+      .then(response => {
+        if (!response.ok) throw new Error('API unreachable');
+        return response.json();
+      })
+      .then(data => {
+        const el = document.getElementById(`count-${subject}`);
+        if (el && typeof data.value !== 'undefined') {
+          el.textContent = `👁️ ${data.value.toLocaleString()}`;
+          el.style.display = 'inline-flex';
+        }
+      })
+      .catch(err => {
+        console.warn(`Failed to fetch count for ${subject}:`, err);
+      });
+  });
+}
+
+// Increment view count for a subject
+function incrementSubjectCount(subject) {
+  fetch(`https://countapi.mileshilliard.com/api/v1/hit/pavnxet-3rd-grade-result-${subject}`)
+    .then(response => {
+      if (!response.ok) throw new Error('API unreachable');
+      return response.json();
+    })
+    .then(data => {
+      const el = document.getElementById(`count-${subject}`);
+      if (el && typeof data.value !== 'undefined') {
+        el.textContent = `👁️ ${data.value.toLocaleString()}`;
+        el.style.display = 'inline-flex';
+      }
+    })
+    .catch(err => {
+      console.warn(`Failed to increment count for ${subject}:`, err);
+    });
+}
+```
+
+### 11.3 Fallback and Ad-Blocker Safeguards
+Since these requests hit an external third-party domain, they may be blocked by user privacy extensions or ad-blockers (e.g. uBlock Origin). To prevent JavaScript runtime crashes:
+* Wrap fetch requests in promise-chains with robust `.catch()` blocks.
+* Keep counter placeholders set to `display: none` by default; only toggle them to `inline-flex` once a successful JSON payload with a valid `value` property is received.
+* Ensure key UI elements (like progress loader text or CSV file selectors) are not bound to or dependent on the success of these counting endpoints.

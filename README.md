@@ -30,6 +30,7 @@ A high-performance, serverless, client-side search engine and analytics dashboar
     *   Includes a **Cancel & Go Back** button inside the loading section, allowing users to safely escape from stuck loading states if a network request hangs.
 *   **Export Support**: Export filtered query search results back into a clean CSV file (`filtered_results.csv`) with a single click.
 *   **Zero-Server Architecture**: Completely static and ready for direct deployment on GitHub Pages or any static host.
+*   **📊 Real-Time Subject View Counter**: Integrates a client-side visitor and click counter for each subject page. Displays view counts (e.g., `👁️ 1,234`) on the subject selector buttons using a privacy-friendly, serverless hit API (`countapi.mileshilliard.com`), updating in real-time as users interact with the site.
 
 ---
 
@@ -39,7 +40,6 @@ A high-performance, serverless, client-side search engine and analytics dashboar
 ├── index.html            # Primary multi-subject search dashboard with candidate insights modal
 ├── merit_search.html     # Dedicated search page configured to auto-load Science/Maths results
 ├── README.md             # Project documentation (this file)
-├── counter.json          # Metrics/counter configuration file
 ├── index.html.backup     # Backup reference of index.html
 │
 ├── [Datasets]
