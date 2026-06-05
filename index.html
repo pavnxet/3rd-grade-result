@@ -895,6 +895,20 @@ function loadCSV(file, subject) {
     header: true,
     skipEmptyLines: true,
     worker: false,
+    delimiters: { quotes: '"' },
+    // Handle Windows line endings properly
+    newline: '',
+    transformHeader: function(h) {
+      // Remove trailing/leading whitespace and carriage returns from headers
+      return h.trim().replace(/\r/g, '');
+    },
+    transform: function(value) {
+      // Remove trailing/leading whitespace and carriage returns from all values
+      if (typeof value === 'string') {
+        return value.trim().replace(/\r/g, '');
+      }
+      return value;
+    },
     step: function(result) {
       allData.push(result.data);
       rowCount++;
@@ -919,39 +933,33 @@ function loadCSV(file, subject) {
 }
 
 function initSearch(subject) {
-  // Stats calculation - handle ALL possible field name variations
-  // Science: Gender, Category, TSP
-  // Hindi/SST: Gender , Cat, TSP (with trailing spaces)
+  // Stats calculation - data is already cleaned by transformHeader/transform in loadCSV()
+  // Headers are now clean: Gender, Category/Cat, TSP (no trailing spaces or \r)
   
   const males = allData.filter(r => {
-    const g = r.Gender || r.gender || r['Gender '] || r['gender '] || '';
-    return g === 'MALE' || g === 'Male' || g === 'male';
+    const g = r.Gender || r.gender || '';
+    return g.toUpperCase() === 'MALE';
   }).length;
   
   const females = allData.filter(r => {
-    const g = r.Gender || r.gender || r['Gender '] || r['gender '] || '';
-    return g === 'FEMALE' || g === 'Female' || g === 'female';
+    const g = r.Gender || r.gender || '';
+    return g.toUpperCase() === 'FEMALE';
   }).length;
   
   const tsp = allData.filter(r => {
-    const t = r.TSP || r.tsp || r['TSP '] || r['tsp '] || '';
-    return t === 'YES' || t === 'Yes' || t === 'yes';
+    const t = r.TSP || r.tsp || '';
+    return t.toUpperCase() === 'YES';
   }).length;
   
   const cats = {};
   allData.forEach(r => { 
-    // Handle Category (Science) vs Cat (Hindi/SST) with possible trailing spaces
-    let cat = r.Category || r.category || r.Cat || r.cat || r['Category '] || r['Cat '] || 'Unknown';
-    // Normalize category values
+    // Handle Category (Science) vs Cat (Hindi/SST) - already cleaned
+    let cat = r.Category || r.category || r.Cat || r.cat || 'Unknown';
+    // Normalize category values to uppercase
+    cat = cat.toUpperCase();
     if (cat === 'GEN') cat = 'GEN';
-    else if (cat === 'Gen') cat = 'GEN';
-    else if (cat === 'gen') cat = 'GEN';
     else if (cat === 'OBC') cat = 'OBC';
-    else if (cat === 'Obc') cat = 'OBC';
-    else if (cat === 'obc') cat = 'OBC';
     else if (cat === 'SC') cat = 'SC';
-    else if (cat === 'Sc') cat = 'SC';
-    else if (cat === 'sc') cat = 'SC';
     else if (cat === 'ST') cat = 'ST';
     else if (cat === 'EWS') cat = 'EWS';
     else if (cat === 'MBC') cat = 'MBC';
@@ -998,30 +1006,23 @@ function doSearch() {
   const marksRange = parseRange(document.getElementById('f-marks').value);
 
   filteredData = allData.filter(r => {
-    // Handle ALL field name variations across CSV files
-    // Science: "Candidate Name", "Roll No", "Gender", "Category", "TSP"
-    // Hindi/SST: "Candidate Name ", "Roll no ", "Gender ", "Cat", "TSP " (trailing spaces)
-    const candidateName = r['Candidate Name'] || r['Candidate Name '] || r['candidate name'] || r['Name'] || '';
-    const rollNo = r['Roll No'] || r['Roll No '] || r['roll no'] || r['RollNo'] || '';
-    const fatherName = r['Father Name'] || r['Father Name '] || r['father name'] || r['FatherName'] || '';
-    const motherName = r['Mother Name'] || r['Mother Name '] || r['mother name'] || r['MotherName'] || '';
+    // Data is already cleaned by transformHeader/transform in loadCSV()
+    const candidateName = r['Candidate Name'] || r['candidate name'] || r['Name'] || '';
+    const rollNo = r['Roll No'] || r['roll no'] || r['RollNo'] || '';
+    const fatherName = r['Father Name'] || r['father name'] || r['FatherName'] || '';
+    const motherName = r['Mother Name'] || r['mother name'] || r['MotherName'] || '';
     
-    // Gender with trailing space handling
-    let genderVal = r.Gender || r.gender || r['Gender '] || r['gender '] || '';
-    // Normalize gender
-    if (genderVal === 'Male' || genderVal === 'male') genderVal = 'MALE';
-    if (genderVal === 'Female' || genderVal === 'female') genderVal = 'FEMALE';
+    // Gender - already cleaned and normalized
+    let genderVal = r.Gender || r.gender || '';
+    genderVal = genderVal.toUpperCase();
     
-    // Category vs Cat with trailing space handling
-    let categoryVal = r.Category || r.category || r.Cat || r.cat || r['Category '] || r['Cat '] || '';
-    // Normalize category for filtering
-    if (categoryVal === 'Gen' || categoryVal === 'gen') categoryVal = 'GEN';
-    if (categoryVal === 'Obc' || categoryVal === 'obc') categoryVal = 'OBC';
-    if (categoryVal === 'Sc' || categoryVal === 'sc') categoryVal = 'SC';
+    // Category vs Cat - already cleaned
+    let categoryVal = r.Category || r.category || r.Cat || r.cat || '';
+    categoryVal = categoryVal.toUpperCase();
     
-    // TSP with trailing space handling
-    let tspValRow = r.TSP || r.tsp || r['TSP '] || r['tsp '] || '';
-    if (tspValRow === 'Yes' || tspValRow === 'yes') tspValRow = 'YES';
+    // TSP - already cleaned
+    let tspValRow = r.TSP || r.tsp || '';
+    tspValRow = tspValRow.toUpperCase();
     
     const meritVal = r.Merit || r.merit || r['Merit Rank'] || '';
     const marksVal = r.Marks || r.marks || '';
@@ -1091,30 +1092,24 @@ function renderTable() {
 
   tbody.innerHTML = pageData.map((r, idx) => {
     const globalIndex = start + idx;
-    // Handle ALL different CSV field names (Science vs Hindi/SST with trailing spaces)
+    // Data is already cleaned by transformHeader/transform in loadCSV()
     const meritVal = r.Merit || r.merit || r['Merit Rank'] || '';
     const marksVal = r.Marks || r.marks || '';
-    const rollNo = r['Roll No'] || r['Roll No '] || r['roll no'] || r.RollNo || '';
-    const candidateName = r['Candidate Name'] || r['Candidate Name '] || r['candidate name'] || r.Name || '';
-    const fatherName = r['Father Name'] || r['Father Name '] || r['father name'] || r.FatherName || '';
-    const motherName = r['Mother Name'] || r['Mother Name '] || r['mother name'] || r.MotherName || '';
+    const rollNo = r['Roll No'] || r['roll no'] || r.RollNo || '';
+    const candidateName = r['Candidate Name'] || r['candidate name'] || r.Name || '';
+    const fatherName = r['Father Name'] || r['father name'] || r.FatherName || '';
+    const motherName = r['Mother Name'] || r['mother name'] || r.MotherName || '';
     
-    // Gender with trailing space and case normalization
-    let genderVal = r.Gender || r.gender || r['Gender '] || r['gender '] || '';
-    if (genderVal === 'Male' || genderVal === 'male') genderVal = 'MALE';
-    if (genderVal === 'Female' || genderVal === 'female') genderVal = 'FEMALE';
+    // Gender - already cleaned, normalize to uppercase
+    let genderVal = (r.Gender || r.gender || '').toUpperCase();
     
-    // Category vs Cat with trailing space and case normalization
-    let categoryVal = r.Category || r.category || r.Cat || r.cat || r['Category '] || r['Cat '] || '';
-    if (categoryVal === 'Gen' || categoryVal === 'gen') categoryVal = 'GEN';
-    if (categoryVal === 'Obc' || categoryVal === 'obc') categoryVal = 'OBC';
-    if (categoryVal === 'Sc' || categoryVal === 'sc') categoryVal = 'SC';
+    // Category vs Cat - already cleaned, normalize to uppercase
+    let categoryVal = (r.Category || r.category || r.Cat || r.cat || '').toUpperCase();
     
     const subCatVal = r['Sub Category'] || r['sub category'] || r.SubCategory || '';
     
-    // TSP with trailing space and case normalization
-    let tspValRow = r.TSP || r.tsp || r['TSP '] || r['tsp '] || '';
-    if (tspValRow === 'Yes' || tspValRow === 'yes') tspValRow = 'YES';
+    // TSP - already cleaned, normalize to uppercase
+    let tspValRow = (r.TSP || r.tsp || '').toUpperCase();
     
     return `
     <tr data-index="${globalIndex}">
@@ -1187,18 +1182,18 @@ function exportResults() {
   
   const headers = ['Merit','Marks','Roll No','Candidate Name','Father Name','Mother Name','Gender','Category','Sub Category','TSP'];
   const rows = filteredData.map(r => {
-    // Handle ALL different field name formats (Science vs Hindi/SST with trailing spaces)
+    // Data is already cleaned by transformHeader/transform in loadCSV()
     const row = [
       r.Merit || r.merit || r['Merit Rank'] || '',
       r.Marks || r.marks || '',
-      r['Roll No'] || r['Roll No '] || r['roll no'] || r.RollNo || '',
-      r['Candidate Name'] || r['Candidate Name '] || r['candidate name'] || r.Name || '',
-      r['Father Name'] || r['Father Name '] || r['father name'] || r.FatherName || '',
-      r['Mother Name'] || r['Mother Name '] || r['mother name'] || r.MotherName || '',
-      r.Gender || r.gender || r['Gender '] || r['gender '] || '',
-      r.Category || r.category || r.Cat || r.cat || r['Category '] || r['Cat '] || '',
+      r['Roll No'] || r['roll no'] || r.RollNo || '',
+      r['Candidate Name'] || r['candidate name'] || r.Name || '',
+      r['Father Name'] || r['father name'] || r.FatherName || '',
+      r['Mother Name'] || r['mother name'] || r.MotherName || '',
+      r.Gender || r.gender || '',
+      r.Category || r.category || r.Cat || r.cat || '',
       r['Sub Category'] || r['sub category'] || r.SubCategory || '',
-      r.TSP || r.tsp || r['TSP '] || r['tsp '] || ''
+      r.TSP || r.tsp || ''
     ];
     return row.map(v => `"${(v||'').replace(/"/g,'""')}"`).join(',');
   });
@@ -1225,27 +1220,22 @@ function openInsight(index) {
   const candidate = filteredData[index];
   currentInsightIndex = index;
   
-  // Handle ALL different field name formats (Science vs Hindi/SST with trailing spaces)
-  let category = candidate.Category || candidate.category || candidate.Cat || candidate.cat || candidate['Category '] || candidate['Cat '] || 'GEN';
-  // Normalize category
-  if (category === 'Gen' || category === 'gen') category = 'GEN';
-  if (category === 'Obc' || category === 'obc') category = 'OBC';
-  if (category === 'Sc' || category === 'sc') category = 'SC';
+  // Data is already cleaned by transformHeader/transform in loadCSV()
+  let category = candidate.Category || candidate.category || candidate.Cat || candidate.cat || 'GEN';
+  // Normalize category to uppercase
+  category = category.toUpperCase();
   
-  const rollNo = candidate['Roll No'] || candidate['Roll No '] || candidate['roll no'] || candidate.RollNo || '';
+  const rollNo = candidate['Roll No'] || candidate['roll no'] || candidate.RollNo || '';
   const meritVal = candidate.Merit || candidate.merit || candidate['Merit Rank'] || '0';
   const marksVal = candidate.Marks || candidate.marks || '0';
-  const candidateName = candidate['Candidate Name'] || candidate['Candidate Name '] || candidate['candidate name'] || candidate.Name || '';
+  const candidateName = candidate['Candidate Name'] || candidate['candidate name'] || candidate.Name || '';
   
   // Helper to get marks from any format
   const getMarks = (d) => parseFloat(d.Marks || d.marks || 0);
-  const getRollNo = (d) => d['Roll No'] || d['Roll No '] || d['roll no'] || d.RollNo || '';
+  const getRollNo = (d) => d['Roll No'] || d['roll no'] || d.RollNo || '';
   const getCategory = (d) => {
-    let c = d.Category || d.category || d.Cat || d.cat || d['Category '] || d['Cat '] || 'GEN';
-    if (c === 'Gen' || c === 'gen') return 'GEN';
-    if (c === 'Obc' || c === 'obc') return 'OBC';
-    if (c === 'Sc' || c === 'sc') return 'SC';
-    return c;
+    let c = d.Category || d.category || d.Cat || d.cat || 'GEN';
+    return c.toUpperCase();
   };
   
   // Calculate category rank
