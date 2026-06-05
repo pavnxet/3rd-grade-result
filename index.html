@@ -1701,17 +1701,14 @@ function downloadCandidatePDF(index) {
   const catTop = sameCategory[sameCategory.length - 1];
   const catTopMarks = getMarks(catTop).toFixed(2);
 
-  // Create temporary iframe for printing
-  const iframe = document.createElement('iframe');
-  iframe.style.position = 'fixed';
-  iframe.style.left = '-9999px';
-  iframe.style.top = '0';
-  iframe.style.width = '0';
-  iframe.style.height = '0';
-  iframe.style.border = 'none';
-  document.body.appendChild(iframe);
+  // Open an isolated popup window for printing — avoids iframe mobile re-render and duplicate-page bugs
+  const printWin = window.open('', '_blank', 'width=900,height=650');
+  if (!printWin) {
+    alert('Popup blocked! Please allow popups for this site to save the scorecard as PDF.');
+    return;
+  }
 
-  const doc = iframe.contentWindow.document;
+  const doc = printWin.document;
   doc.open();
   doc.write(`
     <!DOCTYPE html>
@@ -1983,15 +1980,12 @@ function downloadCandidatePDF(index) {
   `);
   doc.close();
 
-  // Print after short delay to make sure styles and fonts are parsed
-  setTimeout(() => {
-    iframe.contentWindow.focus();
-    iframe.contentWindow.print();
-    // Clean up DOM
-    setTimeout(() => {
-      document.body.removeChild(iframe);
-    }, 1000);
-  }, 350);
+  // Trigger print only after the popup window and all its resources (fonts, CSS) have fully loaded
+  printWin.onload = () => {
+    // Auto-close the popup after printing is dismissed
+    printWin.onafterprint = () => printWin.close();
+    printWin.print();
+  };
 }
 </script>
 </body>
