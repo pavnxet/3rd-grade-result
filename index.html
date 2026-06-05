@@ -1708,15 +1708,17 @@ function downloadCandidatePDF(index) {
 
   // Construct print container dynamically
   const element = document.createElement('div');
+  element.style.width = '794px'; // Exactly A4 width at 96 DPI
+  element.style.boxSizing = 'border-box';
   element.style.padding = '40px';
   element.style.fontFamily = "'Noto Sans', sans-serif";
   element.style.color = '#333';
   element.style.background = '#fff';
   element.style.border = '2px solid #FF6B00';
   element.style.borderRadius = '8px';
-  element.style.width = '700px';
-  element.style.margin = '0 auto';
-  element.style.position = 'relative';
+  element.style.position = 'absolute';
+  element.style.left = '-9999px';
+  element.style.top = '0';
 
   element.innerHTML = `
     <a href="https://pavnxet.github.io/3rd-grade-result/" target="_blank" style="text-decoration: none; color: inherit; display: block; cursor: pointer;">
@@ -1829,15 +1831,27 @@ function downloadCandidatePDF(index) {
     </a>
   `;
 
+  // Append to DOM so html2canvas can render layout and fonts correctly
+  document.body.appendChild(element);
+
   const opt = {
-    margin:       15,
+    margin:       10, // A4 margins in mm
     filename:     `result_${roll}_${name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.pdf`,
     image:        { type: 'jpeg', quality: 0.98 },
-    html2canvas:  { scale: 2, useCORS: true },
+    html2canvas:  { 
+      scale: 2, 
+      useCORS: true,
+      windowWidth: 794 // Force html2canvas viewport rendering width to A4 size
+    },
     jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
   };
 
-  html2pdf().set(opt).from(element).save();
+  html2pdf().set(opt).from(element).save().then(() => {
+    document.body.removeChild(element);
+  }).catch((err) => {
+    console.error('PDF generation failed:', err);
+    document.body.removeChild(element);
+  });
 }
 </script>
 </body>
