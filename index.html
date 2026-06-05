@@ -633,18 +633,88 @@
     .modal-content { width:95%; }
     .insight-grid { grid-template-columns:1fr; }
   }
+
+  /* â”€â”€ Print-only scorecard styles â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+  #print-scorecard { display: none; }
+
+  @media print {
+    /* Hide everything on the page */
+    body > *:not(#print-scorecard) { display: none !important; }
+    #print-scorecard {
+      display: block !important;
+      position: static;
+      background: #fff;
+    }
+    @page {
+      size: A4 portrait;
+      margin: 10mm;
+    }
+    body {
+      background: #fff !important;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+    .sc-card {
+      border: 2px solid #FF6B00;
+      border-radius: 8px;
+      padding: 30px;
+      box-sizing: border-box;
+      font-family: 'Noto Sans', sans-serif;
+      color: #333;
+    }
+    .sc-header {
+      text-align: center;
+      border-bottom: 3px double #FF6B00;
+      padding-bottom: 12px;
+      margin-bottom: 20px;
+    }
+    .sc-notice { font-size: 10px; color: #666; font-style: italic; margin-bottom: 8px; }
+    .sc-title  { font-size: 22px; margin: 0; color: #0A1628; text-transform: uppercase; letter-spacing: 0.5px; font-family: 'Rajdhani', sans-serif; font-weight: 700; }
+    .sc-sub    { font-size: 16px; margin: 5px 0; color: #FF6B00; font-family: 'Rajdhani', sans-serif; font-weight: 600; }
+    .sc-meta   { font-size: 12px; margin: 5px 0; color: #666; }
+    .sc-section-title {
+      border-bottom: 1px solid #ddd; padding-bottom: 4px;
+      margin: 16px 0 10px; color: #0A1628; text-transform: uppercase;
+      font-size: 11px; letter-spacing: 0.5px;
+      font-family: 'Rajdhani', sans-serif; font-weight: 700;
+    }
+    .sc-info-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 20px; }
+    .sc-info-table td { padding: 6px 0; }
+    .sc-bold { font-weight: bold; width: 25%; }
+    .sc-orange { color: #FF6B00; font-weight: bold; }
+    .sc-metrics { display: flex; gap: 15px; margin-bottom: 20px; }
+    .sc-metric-box {
+      flex: 1; border: 1px solid #ddd; padding: 12px;
+      border-radius: 6px; background: #fafafa; text-align: center;
+    }
+    .sc-metric-lbl { font-size: 10px; text-transform: uppercase; color: #666; font-weight: bold; }
+    .sc-metric-val { font-size: 24px; font-weight: bold; margin-top: 5px; font-family: 'Rajdhani', sans-serif; }
+    .sc-metric-sub { font-size: 10px; color: #888; margin-top: 2px; }
+    .sc-green  { color: #138808; }
+    .sc-red    { color: #F44336; }
+    .sc-dark   { color: #0A1628; }
+    .sc-bench  { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 20px; }
+    .sc-bench th { background: #f0f0f0; border-bottom: 1px solid #ddd; padding: 8px; font-weight: bold; text-align: left; }
+    .sc-bench td { padding: 8px; border-bottom: 1px solid #eee; }
+    .sc-bench tr:last-child td { border-bottom: none; }
+    .sc-footer {
+      margin-top: 35px; padding-top: 12px; border-top: 1px solid #eee;
+      display: flex; justify-content: space-between; font-size: 10px; color: #777;
+    }
+    a { text-decoration: none; color: inherit; }
+  }
 </style>
 </head>
 <body>
 
 <header>
-  <div class="emblem" style="cursor: pointer;" onclick="goBack()" title="Go to Home / Change Subject">🏛️</div>
+  <div class="emblem" style="cursor: pointer;" onclick="goBack()" title="Go to Home / Change Subject">ðŸ›ï¸</div>
   <div class="header-text" style="cursor: pointer;" onclick="goBack()" title="Go to Home / Change Subject">
-    <h1>RSSB Merit List — Teacher Level 2</h1>
-    <p id="header-subtitle">Rajasthan Staff Selection Board · Teacher Level 2</p>
+    <h1>RSSB Merit List â€” Teacher Level 2</h1>
+    <p id="header-subtitle">Rajasthan Staff Selection Board Â· Teacher Level 2</p>
   </div>
   <div style="margin-left: auto; display: flex; align-items: center; gap: 12px;">
-    <button class="back-btn" style="margin-bottom: 0; display: none; padding: 6px 12px; font-size: 13px;" id="home-btn" onclick="goBack()">🏠 Home</button>
+    <button class="back-btn" style="margin-bottom: 0; display: none; padding: 6px 12px; font-size: 13px;" id="home-btn" onclick="goBack()">ðŸ  Home</button>
     <div class="badge" id="total-badge" style="display:none; margin-left: 0;">0 Records</div>
   </div>
 </header>
@@ -655,7 +725,7 @@
   <div class="watermark-section">
     <div class="watermark-content">
       <div class="watermark-text">
-        Made with <span class="watermark-heart">💖</span> by 
+        Made with <span class="watermark-heart">ðŸ’–</span> by 
         <a href="https://github.com/pavnxet/3rd-grade-result" class="watermark-link" target="_blank" rel="noopener noreferrer">pavnxet</a>
       </div>
       <div class="watermark-sub">GitHub CSV Search Page</div>
@@ -668,48 +738,48 @@
     <p>Choose the subject to load its merit list data</p>
     <div class="subject-buttons">
       <button class="subj-btn" onclick="selectSubject('science')">
-        <span class="icon">🔬</span>
+        <span class="icon">ðŸ”¬</span>
         <span class="name">Science / Maths</span>
         <span class="file">merit_list.csv</span>
-        <span class="views" id="count-science" style="display: none;">👁️ --</span>
+        <span class="views" id="count-science" style="display: none;">ðŸ‘ï¸ --</span>
       </button>
       <button class="subj-btn" onclick="selectSubject('hindi')">
-        <span class="icon">📖</span>
+        <span class="icon">ðŸ“–</span>
         <span class="name">Hindi</span>
         <span class="file">3rd_hindi.csv</span>
-        <span class="views" id="count-hindi" style="display: none;">👁️ --</span>
+        <span class="views" id="count-hindi" style="display: none;">ðŸ‘ï¸ --</span>
       </button>
       <button class="subj-btn" onclick="selectSubject('sst')">
-        <span class="icon">🌍</span>
+        <span class="icon">ðŸŒ</span>
         <span class="name">SST</span>
         <span class="file">3rd_sst.csv</span>
-        <span class="views" id="count-sst" style="display: none;">👁️ --</span>
+        <span class="views" id="count-sst" style="display: none;">ðŸ‘ï¸ --</span>
       </button>
     </div>
   </div>
 
   <!-- Upload Section (used as loader) -->
   <div id="upload-section" style="display:none;">
-    <div class="upload-icon">⏳</div>
+    <div class="upload-icon">â³</div>
     <h2 id="loader-title">Loading Merit List...</h2>
     <p id="loader-subject">Please wait while we fetch the data</p>
     <div id="progress-bar-wrap" style="display:block;">
-      <p id="progress-text">Fetching records…</p>
+      <p id="progress-text">Fetching recordsâ€¦</p>
       <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
     </div>
-    <button class="back-btn" style="margin-top:20px; display:inline-block;" onclick="goBack()">← Cancel & Go Back</button>
+    <button class="back-btn" style="margin-top:20px; display:inline-block;" onclick="goBack()">â† Cancel & Go Back</button>
     <input type="file" id="csv-input" accept=".csv" onchange="loadCSV(this.files[0])" style="display:none;">
   </div>
 
   <!-- Search Section -->
   <div id="search-section">
     
-    <button class="back-btn" onclick="goBack()">← Change Subject</button>
+    <button class="back-btn" onclick="goBack()">â† Change Subject</button>
     
     <div class="stats-row" id="stats-row"></div>
 
     <div class="search-panel">
-      <h3>🔍 Search Filters</h3>
+      <h3>ðŸ” Search Filters</h3>
       <div class="fields-grid">
         <div class="field-group">
           <label>Candidate Name</label>
@@ -776,7 +846,7 @@
     <div class="table-wrap">
       <div class="table-header-bar">
         <h3>Results</h3>
-        <button class="export-btn" onclick="exportResults()">⬇ Export Results CSV</button>
+        <button class="export-btn" onclick="exportResults()">â¬‡ Export Results CSV</button>
       </div>
       <div class="table-scroll">
         <table id="results-table">
@@ -860,7 +930,7 @@ function showSelectorScreen() {
   document.getElementById('total-badge').style.display = 'none';
   const homeBtn = document.getElementById('home-btn');
   if (homeBtn) homeBtn.style.display = 'none';
-  document.getElementById('header-subtitle').textContent = 'Rajasthan Staff Selection Board · Teacher Level 2';
+  document.getElementById('header-subtitle').textContent = 'Rajasthan Staff Selection Board Â· Teacher Level 2';
   
   if (window.location.hash !== '') {
     window.location.hash = '';
@@ -882,7 +952,7 @@ function loadViewCounts() {
       .then(data => {
         const el = document.getElementById(`count-${subject}`);
         if (el && typeof data.value !== 'undefined') {
-          el.textContent = `👁️ ${data.value.toLocaleString()}`;
+          el.textContent = `ðŸ‘ï¸ ${data.value.toLocaleString()}`;
           el.style.display = 'inline-flex';
         }
       })
@@ -902,7 +972,7 @@ function incrementSubjectCount(subject) {
     .then(data => {
       const el = document.getElementById(`count-${subject}`);
       if (el && typeof data.value !== 'undefined') {
-        el.textContent = `👁️ ${data.value.toLocaleString()}`;
+        el.textContent = `ðŸ‘ï¸ ${data.value.toLocaleString()}`;
         el.style.display = 'inline-flex';
       }
     })
@@ -942,9 +1012,9 @@ function selectSubject(subject) {
     })
     .catch(err => {
       console.error('Error loading CSV:', err);
-      document.getElementById('progress-text').textContent = '❌ Error loading file. Please try again.';
+      document.getElementById('progress-text').textContent = 'âŒ Error loading file. Please try again.';
       document.getElementById('loader-subject').textContent = 'File not found: ' + DATA_SOURCES[subject];
-      document.querySelector('.upload-icon').textContent = '⚠️';
+      document.querySelector('.upload-icon').textContent = 'âš ï¸';
     });
 }
 
@@ -954,8 +1024,8 @@ function showLoader(subject) {
   document.getElementById('loader-title').textContent = 'Loading ' + name + ' Results...';
   document.getElementById('loader-subject').textContent = 'Fetching data from ' + DATA_SOURCES[subject];
   document.getElementById('progress-fill').style.width = '0%';
-  document.getElementById('progress-text').textContent = 'Fetching records…';
-  document.querySelector('.upload-icon').textContent = '⏳';
+  document.getElementById('progress-text').textContent = 'Fetching recordsâ€¦';
+  document.querySelector('.upload-icon').textContent = 'â³';
   
   document.getElementById('selector-section').style.display = 'none';
   document.getElementById('upload-section').style.display = 'block';
@@ -974,7 +1044,7 @@ function showResults(subject) {
   document.getElementById('total-badge').style.display = '';
   const homeBtn = document.getElementById('home-btn');
   if (homeBtn) homeBtn.style.display = 'inline-flex';
-  document.getElementById('header-subtitle').textContent = 'Rajasthan Staff Selection Board · ' + name;
+  document.getElementById('header-subtitle').textContent = 'Rajasthan Staff Selection Board Â· ' + name;
   
   document.getElementById('selector-section').style.display = 'none';
   document.getElementById('upload-section').style.display = 'none';
@@ -1069,7 +1139,7 @@ function loadCSV(file, subject) {
     }, 50);
   };
   reader.onerror = function() {
-    document.getElementById('progress-text').textContent = '❌ Error reading file.';
+    document.getElementById('progress-text').textContent = 'âŒ Error reading file.';
   };
   reader.readAsText(file);
 }
@@ -1108,12 +1178,12 @@ function parseCleanedCSV(cleanedText, subject) {
       if (rowCount % 5000 === 0) {
         const pct = Math.min(95, (rowCount / 60000) * 100);
         document.getElementById('progress-fill').style.width = pct + '%';
-        document.getElementById('progress-text').textContent = `Loading… ${rowCount.toLocaleString()} records`;
+        document.getElementById('progress-text').textContent = `Loadingâ€¦ ${rowCount.toLocaleString()} records`;
       }
     },
     complete: function() {
       document.getElementById('progress-fill').style.width = '100%';
-      document.getElementById('progress-text').textContent = `✓ ${allData.length.toLocaleString()} records loaded!`;
+      document.getElementById('progress-text').textContent = `âœ“ ${allData.length.toLocaleString()} records loaded!`;
       
       // Cache the data for this subject
       if (subject) {
@@ -1284,7 +1354,7 @@ function renderTable() {
   const tbody = document.getElementById('table-body');
 
   if (pageData.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="11"><div class="empty-state"><div class="icon">🔎</div><p>No results found. Try adjusting your search filters.</p></div></td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="11"><div class="empty-state"><div class="icon">ðŸ”Ž</div><p>No results found. Try adjusting your search filters.</p></div></td></tr>`;
     return;
   }
 
@@ -1320,8 +1390,8 @@ function renderTable() {
       <td>${genderPill(genderVal)}</td>
       <td>${catPill(categoryVal)}</td>
       <td>${escHtml(subCatVal||'')}</td>
-      <td>${tspValRow==='YES' ? '<span class="pill tsp-yes">✓ TSP</span>' : ''}</td>
-      <td><button class="nav-btn" style="padding:4px 10px;font-size:12px;cursor:pointer;" onclick="event.stopPropagation(); console.log('View button clicked, index:', ${globalIndex}); openInsight(${globalIndex})">📊 View</button></td>
+      <td>${tspValRow==='YES' ? '<span class="pill tsp-yes">âœ“ TSP</span>' : ''}</td>
+      <td><button class="nav-btn" style="padding:4px 10px;font-size:12px;cursor:pointer;" onclick="event.stopPropagation(); console.log('View button clicked, index:', ${globalIndex}); openInsight(${globalIndex})">ðŸ“Š View</button></td>
     </tr>
   `;
   }).join('');
@@ -1332,7 +1402,7 @@ function renderPagination() {
   const pg = document.getElementById('pagination');
   if (totalPages <= 1) { pg.innerHTML=''; return; }
 
-  let html = `<button class="page-btn" onclick="goPage(${currentPage-1})" ${currentPage===1?'disabled':''}>‹ Prev</button>`;
+  let html = `<button class="page-btn" onclick="goPage(${currentPage-1})" ${currentPage===1?'disabled':''}>â€¹ Prev</button>`;
 
   let pages = [];
   if (totalPages <= 7) {
@@ -1347,12 +1417,12 @@ function renderPagination() {
   }
 
   pages.forEach(p => {
-    if (p==='...') html += `<span class="page-info">…</span>`;
+    if (p==='...') html += `<span class="page-info">â€¦</span>`;
     else html += `<button class="page-btn ${p===currentPage?'active':''}" onclick="goPage(${p})">${p}</button>`;
   });
 
-  html += `<button class="page-btn" onclick="goPage(${currentPage+1})" ${currentPage===totalPages?'disabled':''}>Next ›</button>`;
-  html += `<span class="page-info">Page ${currentPage} of ${totalPages.toLocaleString()} · ${filteredData.length.toLocaleString()} records</span>`;
+  html += `<button class="page-btn" onclick="goPage(${currentPage+1})" ${currentPage===totalPages?'disabled':''}>Next â€º</button>`;
+  html += `<span class="page-info">Page ${currentPage} of ${totalPages.toLocaleString()} Â· ${filteredData.length.toLocaleString()} records</span>`;
   pg.innerHTML = html;
 }
 
@@ -1471,17 +1541,17 @@ function openInsight(index) {
     <div class="modal-overlay" onclick="if(event.target===this) closeInsight()">
       <div class="modal-content">
         <div class="modal-header">
-          <div class="modal-title">📊 Candidate Insights</div>
+          <div class="modal-title">ðŸ“Š Candidate Insights</div>
           <div style="display:flex;align-items:center;gap:10px;">
-            <button class="export-btn" style="background:transparent;border:1px solid var(--saffron);color:var(--saffron-light);padding:6px 12px;font-size:13px;" onclick="downloadCandidatePDF(${index})">📄 Save PDF</button>
-            <button class="modal-close" onclick="closeInsight()">×</button>
+            <button class="export-btn" style="background:transparent;border:1px solid var(--saffron);color:var(--saffron-light);padding:6px 12px;font-size:13px;" onclick="downloadCandidatePDF(${index})">ðŸ“„ Save PDF</button>
+            <button class="modal-close" onclick="closeInsight()">Ã—</button>
           </div>
         </div>
         <div class="modal-body">
           <div class="insight-grid">
             <!-- Rank Card -->
             <div class="insight-card">
-              <h4>🏆 Rank Overview</h4>
+              <h4>ðŸ† Rank Overview</h4>
               <div class="rank-display">
                 <div class="rank-badge">#${globalRank}</div>
                 <div>
@@ -1511,9 +1581,9 @@ function openInsight(index) {
             
             <!-- Gap Analysis Card -->
             <div class="insight-card">
-              <h4>📈 Gap Analysis</h4>
+              <h4>ðŸ“ˆ Gap Analysis</h4>
               <div class="comparison-row">
-                <div class="comp-avatar">⬆️</div>
+                <div class="comp-avatar">â¬†ï¸</div>
                 <div class="comp-info">
                   <div class="comp-name">${prevCandidate ? prevCandidate['Candidate Name'] : 'N/A'}</div>
                   <div class="comp-detail">${prevCandidate ? 'Rank #'+prevCandidate['Merit'] : 'No candidate above'}</div>
@@ -1524,11 +1594,11 @@ function openInsight(index) {
               </div>
               <div style="text-align:center;padding:8px 0;">
                 <span class="gap-indicator ${!gapAbove ? 'gap-safe' : parseFloat(gapAbove) < 0.5 ? 'gap-critical' : parseFloat(gapAbove) < 2 ? 'gap-moderate' : 'gap-safe'}">
-                  ${gapAbove ? '▲ ' + gapAbove + ' marks behind' : 'Top position'}
+                  ${gapAbove ? 'â–² ' + gapAbove + ' marks behind' : 'Top position'}
                 </span>
               </div>
               <div class="comparison-row">
-                <div class="comp-avatar">⬇️</div>
+                <div class="comp-avatar">â¬‡ï¸</div>
                 <div class="comp-info">
                   <div class="comp-name">${nextCandidate ? nextCandidate['Candidate Name'] : 'N/A'}</div>
                   <div class="comp-detail">${nextCandidate ? 'Rank #'+nextCandidate['Merit'] : 'No candidate below'}</div>
@@ -1539,14 +1609,14 @@ function openInsight(index) {
               </div>
               <div style="text-align:center;padding:8px 0;">
                 <span class="gap-indicator ${!gapBelow ? 'gap-safe' : parseFloat(gapBelow) < 0.5 ? 'gap-critical' : parseFloat(gapBelow) < 2 ? 'gap-moderate' : 'gap-safe'}">
-                  ${gapBelow ? '▼ ' + gapBelow + ' marks ahead' : 'Last position'}
+                  ${gapBelow ? 'â–¼ ' + gapBelow + ' marks ahead' : 'Last position'}
                 </span>
               </div>
             </div>
             
             <!-- Category Comparison Card -->
             <div class="insight-card">
-              <h4>👥 Category Benchmark (${category})</h4>
+              <h4>ðŸ‘¥ Category Benchmark (${category})</h4>
               <div class="stats-mini">
                 <div class="stat-mini">
                   <div class="val">${catAvg.toFixed(2)}</div>
@@ -1567,7 +1637,7 @@ function openInsight(index) {
               </div>
               <div style="margin-top:14px;">
                 <div class="comparison-row">
-                  <div class="comp-avatar">🥇</div>
+                  <div class="comp-avatar">ðŸ¥‡</div>
                   <div class="comp-info">
                     <div class="comp-name">${catTop['Candidate Name']}</div>
                     <div class="comp-detail">Top in ${category}</div>
@@ -1575,7 +1645,7 @@ function openInsight(index) {
                   <div class="comp-marks high">${catTop.Marks}</div>
                 </div>
                 <div class="comparison-row">
-                  <div class="comp-avatar">🎯</div>
+                  <div class="comp-avatar">ðŸŽ¯</div>
                   <div class="comp-info">
                     <div class="comp-name">${candidate['Candidate Name']}</div>
                     <div class="comp-detail">You (Rank #${catRank})</div>
@@ -1583,7 +1653,7 @@ function openInsight(index) {
                   <div class="comp-marks mid">${candidate.Marks}</div>
                 </div>
                 <div class="comparison-row">
-                  <div class="comp-avatar">📍</div>
+                  <div class="comp-avatar">ðŸ“</div>
                   <div class="comp-info">
                     <div class="comp-name">${catBottom['Candidate Name']}</div>
                     <div class="comp-detail">Last in ${category}</div>
@@ -1595,7 +1665,7 @@ function openInsight(index) {
             
             <!-- Quick Stats Card -->
             <div class="insight-card">
-              <h4>📋 Quick Stats</h4>
+              <h4>ðŸ“‹ Quick Stats</h4>
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
                 <div style="background:var(--navy3);padding:10px;border-radius:8px;">
                   <div style="font-size:11px;color:var(--muted);text-transform:uppercase;">Ahead of</div>
@@ -1622,8 +1692,8 @@ function openInsight(index) {
           </div>
           
           <div class="nav-candidate">
-            <button class="nav-btn" onclick="navigateInsight(-1)" ${index <= 0 ? 'disabled' : ''}>← Previous Candidate</button>
-            <button class="nav-btn" onclick="navigateInsight(1)" ${index >= filteredData.length - 1 ? 'disabled' : ''}>Next Candidate →</button>
+            <button class="nav-btn" onclick="navigateInsight(-1)" ${index <= 0 ? 'disabled' : ''}>â† Previous Candidate</button>
+            <button class="nav-btn" onclick="navigateInsight(1)" ${index >= filteredData.length - 1 ? 'disabled' : ''}>Next Candidate â†’</button>
           </div>
         </div>
       </div>
@@ -1671,322 +1741,129 @@ function downloadCandidatePDF(index) {
   }
 
   const subjectName = currentSubject ? SUBJECT_NAMES[currentSubject] : 'Teacher Level 2';
-  
-  // Extract all details (using normalized standard keys)
-  const name = candidate['Candidate Name'] || 'N/A';
-  const roll = candidate['Roll No'] || 'N/A';
-  const father = candidate['Father Name'] || 'N/A';
-  const mother = candidate['Mother Name'] || 'N/A';
-  const marks = candidate['Marks'] || '0';
-  const merit = candidate['Merit'] || '0';
-  const gender = candidate['Gender'] || 'N/A';
-  const category = candidate['Category'] || 'N/A';
-  const tsp = candidate['TSP'] === 'YES' ? 'YES (TSP)' : 'NO (Non-TSP)';
-  const subCat = candidate['Sub Category'] || 'None';
 
-  // Calculate category ranks
-  const getMarks = (d) => parseFloat(d.Marks || d.marks || 0);
-  const getRollNo = (d) => d['Roll No'] || d['roll no'] || d.RollNo || '';
+  const name     = candidate['Candidate Name'] || 'N/A';
+  const roll     = candidate['Roll No']        || 'N/A';
+  const father   = candidate['Father Name']    || 'N/A';
+  const mother   = candidate['Mother Name']    || 'N/A';
+  const marks    = candidate['Marks']          || '0';
+  const merit    = candidate['Merit']          || '0';
+  const gender   = candidate['Gender']         || 'N/A';
+  const category = candidate['Category']       || 'N/A';
+  const tsp      = candidate['TSP'] === 'YES'  ? 'YES (TSP)' : 'NO (Non-TSP)';
+  const subCat   = candidate['Sub Category']   || 'None';
+
+  const getMarks    = (d) => parseFloat(d.Marks || d.marks || 0);
+  const getRollNo   = (d) => d['Roll No'] || d['roll no'] || d.RollNo || '';
   const getCategory = (d) => (d.Category || d.category || d.Cat || d.cat || 'GEN').toUpperCase();
-  
-  const sameCategory = allData.filter(d => getCategory(d) === category.toUpperCase()).sort((a,b) => getMarks(a) - getMarks(b));
-  const catPosition = sameCategory.findIndex(d => getRollNo(d) === roll) + 1;
-  const totalInCat = sameCategory.length;
-  const catRank = totalInCat - catPosition + 1;
+
+  const sameCategory   = allData.filter(d => getCategory(d) === category.toUpperCase()).sort((a,b) => getMarks(a) - getMarks(b));
+  const catPosition    = sameCategory.findIndex(d => getRollNo(d) === roll) + 1;
+  const totalInCat     = sameCategory.length;
+  const catRank        = totalInCat - catPosition + 1;
   const totalCandidates = allData.length;
-  const percentile = ((totalCandidates - parseInt(merit)) / totalCandidates * 100).toFixed(1);
+  const percentile     = ((totalCandidates - parseInt(merit)) / totalCandidates * 100).toFixed(1);
+  const catAvg         = (sameCategory.reduce((sum, d) => sum + getMarks(d), 0) / totalInCat).toFixed(2);
+  const catTop         = sameCategory[sameCategory.length - 1];
+  const catTopMarks    = getMarks(catTop).toFixed(2);
+  const aboveBelow     = parseFloat(marks) >= parseFloat(catAvg)
+    ? `+${(parseFloat(marks) - parseFloat(catAvg)).toFixed(2)} marks above avg`
+    : `${(parseFloat(marks) - parseFloat(catAvg)).toFixed(2)} marks below avg`;
+  const aboveBelowColor = parseFloat(marks) >= parseFloat(catAvg) ? '#138808' : '#F44336';
 
-  // Category average
-  const catAvg = (sameCategory.reduce((sum, d) => sum + getMarks(d), 0) / totalInCat).toFixed(2);
-  const catTop = sameCategory[sameCategory.length - 1];
-  const catTopMarks = getMarks(catTop).toFixed(2);
+  // â”€â”€ In-page print approach â€” works on iOS Safari / Android / Desktop with zero popups â”€â”€
+  const container = document.getElementById('print-scorecard');
+  container.innerHTML = `
+    <a href="https://pavnxet.github.io/3rd-grade-result/" target="_blank">
+      <div class="sc-card">
+        <div class="sc-header">
+          <div class="sc-notice">ðŸ’¡ Click anywhere on this document to verify this result online</div>
+          <h2 class="sc-title">Rajasthan Staff Selection Board (RSSB)</h2>
+          <h3 class="sc-sub">Candidate Performance Report Card</h3>
+          <p class="sc-meta">Subject: ${subjectName} Â· Level 2 Exam</p>
+        </div>
 
-  // Open an isolated popup window for printing — avoids iframe mobile re-render and duplicate-page bugs
-  const printWin = window.open('', '_blank', 'width=900,height=650');
-  if (!printWin) {
-    alert('Popup blocked! Please allow popups for this site to save the scorecard as PDF.');
-    return;
-  }
+        <div class="sc-section-title">Candidate Information</div>
+        <table class="sc-info-table">
+          <tr>
+            <td class="sc-bold">Roll Number:</td><td>${roll}</td>
+            <td class="sc-bold">Merit Rank:</td><td class="sc-orange">#${merit}</td>
+          </tr>
+          <tr><td class="sc-bold">Candidate Name:</td><td colspan="3">${name}</td></tr>
+          <tr><td class="sc-bold">Father's Name:</td><td colspan="3">${father}</td></tr>
+          <tr><td class="sc-bold">Mother's Name:</td><td colspan="3">${mother}</td></tr>
+          <tr>
+            <td class="sc-bold">Gender:</td><td>${gender}</td>
+            <td class="sc-bold">Category:</td><td>${category}</td>
+          </tr>
+          <tr>
+            <td class="sc-bold">Sub Category:</td><td>${subCat}</td>
+            <td class="sc-bold">TSP Candidate:</td><td>${tsp}</td>
+          </tr>
+        </table>
 
-  const doc = printWin.document;
-  doc.open();
-  doc.write(`
-    <!DOCTYPE html>
-    <html>
-      <head>
-        <title>Result Card - ${roll}</title>
-        <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Noto+Sans:wght@400;700&display=swap" rel="stylesheet">
-        <style>
-          @page {
-            size: A4 portrait;
-            margin: 10mm;
-          }
-          body {
-            font-family: 'Noto Sans', sans-serif;
-            color: #333;
-            background: #fff;
-            margin: 0;
-            padding: 0;
-            -webkit-print-color-adjust: exact;
-            print-color-adjust: exact;
-          }
-          .card {
-            border: 2px solid #FF6B00;
-            border-radius: 8px;
-            padding: 30px;
-            box-sizing: border-box;
-            background: #fff;
-            position: relative;
-          }
-          .header {
-            text-align: center;
-            border-bottom: 3px double #FF6B00;
-            padding-bottom: 12px;
-            margin-bottom: 20px;
-          }
-          .header-notice {
-            font-size: 10px;
-            color: #666;
-            margin-bottom: 8px;
-            font-style: italic;
-          }
-          .header-title {
-            font-size: 22px;
-            margin: 0;
-            color: #0A1628;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            font-family: 'Rajdhani', sans-serif;
-            font-weight: 700;
-          }
-          .header-subtitle {
-            font-size: 16px;
-            margin: 5px 0;
-            color: #FF6B00;
-            font-family: 'Rajdhani', sans-serif;
-            font-weight: 600;
-          }
-          .header-meta {
-            font-size: 12px;
-            margin: 5px 0;
-            color: #666;
-          }
-          .section-title {
-            border-bottom: 1px solid #ddd;
-            padding-bottom: 4px;
-            margin-bottom: 10px;
-            margin-top: 15px;
-            color: #0A1628;
-            text-transform: uppercase;
-            font-size: 11px;
-            letter-spacing: 0.5px;
-            font-family: 'Rajdhani', sans-serif;
-            font-weight: 700;
-          }
-          .info-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 13px;
-            margin-bottom: 20px;
-          }
-          .info-table td {
-            padding: 6px 0;
-          }
-          .bold-label {
-            font-weight: bold;
-            width: 25%;
-          }
-          .merit-text {
-            color: #FF6B00;
-            font-weight: bold;
-          }
-          .metrics-grid {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 20px;
-          }
-          .metric-box {
-            flex: 1;
-            border: 1px solid #ddd;
-            padding: 12px;
-            border-radius: 6px;
-            background: #fafafa;
-            text-align: center;
-          }
-          .metric-lbl {
-            font-size: 10px;
-            text-transform: uppercase;
-            color: #666;
-            font-weight: bold;
-          }
-          .metric-val {
-            font-size: 24px;
-            font-weight: bold;
-            margin-top: 5px;
-            font-family: 'Rajdhani', sans-serif;
-          }
-          .color-green { color: #138808; }
-          .color-orange { color: #FF6B00; }
-          .color-dark { color: #0A1628; }
-          .metric-sub {
-            font-size: 10px;
-            color: #888;
-            margin-top: 2px;
-          }
-          .benchmark-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 13px;
-            text-align: left;
-            margin-bottom: 20px;
-          }
-          .benchmark-table th {
-            background: #f0f0f0;
-            border-bottom: 1px solid #ddd;
-            padding: 8px;
-            font-weight: bold;
-          }
-          .benchmark-table td {
-            padding: 8px;
-            border-bottom: 1px solid #eee;
-          }
-          .benchmark-table tr:last-child td {
-            border-bottom: none;
-          }
-          .footer {
-            margin-top: 35px;
-            padding-top: 12px;
-            border-top: 1px solid #eee;
-            display: flex;
-            justify-content: space-between;
-            font-size: 10px;
-            color: #777;
-          }
-          a {
-            text-decoration: none;
-            color: inherit;
-          }
-        </style>
-      </head>
-      <body>
-        <a href="https://pavnxet.github.io/3rd-grade-result/" target="_blank">
-          <div class="card">
-            <!-- Header -->
-            <div class="header">
-              <div class="header-notice">💡 Click anywhere on this document to verify this result online</div>
-              <h2 class="header-title">Rajasthan Staff Selection Board (RSSB)</h2>
-              <h3 class="header-subtitle">Candidate Performance Report Card</h3>
-              <p class="header-meta">Subject: ${subjectName} · Level 2 Exam</p>
-            </div>
-
-            <!-- Candidate details table -->
-            <div class="section-title">Candidate Information</div>
-            <table class="info-table">
-              <tr>
-                <td class="bold-label">Roll Number:</td>
-                <td>${roll}</td>
-                <td class="bold-label">Merit Rank:</td>
-                <td class="merit-text">#${merit}</td>
-              </tr>
-              <tr>
-                <td class="bold-label">Candidate Name:</td>
-                <td colspan="3">${name}</td>
-              </tr>
-              <tr>
-                <td class="bold-label">Father's Name:</td>
-                <td colspan="3">${father}</td>
-              </tr>
-              <tr>
-                <td class="bold-label">Mother's Name:</td>
-                <td colspan="3">${mother}</td>
-              </tr>
-              <tr>
-                <td class="bold-label">Gender:</td>
-                <td>${gender}</td>
-                <td class="bold-label">Category:</td>
-                <td>${category}</td>
-              </tr>
-              <tr>
-                <td class="bold-label">Sub Category:</td>
-                <td>${subCat}</td>
-                <td class="bold-label">TSP Candidate:</td>
-                <td>${tsp}</td>
-              </tr>
-            </table>
-
-            <!-- Scores & Ranks -->
-            <div class="metrics-grid">
-              <div class="metric-box">
-                <div class="metric-lbl">Obtained Marks</div>
-                <div class="metric-val color-green">${marks}</div>
-                <div class="metric-sub">out of 300 marks</div>
-              </div>
-              <div class="metric-box">
-                <div class="metric-lbl">Category Rank (${category})</div>
-                <div class="metric-val color-orange">#${catRank}</div>
-                <div class="metric-sub">out of ${totalInCat} candidates</div>
-              </div>
-              <div class="metric-box">
-                <div class="metric-lbl">Performance Percentile</div>
-                <div class="metric-val color-dark">${percentile}%</div>
-                <div class="metric-sub">Top ${(100-percentile).toFixed(1)}% of all candidates</div>
-              </div>
-            </div>
-
-            <!-- Category Benchmarks -->
-            <div class="section-title">Category Benchmark Comparison</div>
-            <table class="benchmark-table">
-              <thead>
-                <tr>
-                  <th>Metric</th>
-                  <th>Marks</th>
-                  <th>Status / Difference</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td style="font-weight:bold;">Category Highest:</td>
-                  <td style="font-weight:bold; color:#F44336;">${catTopMarks}</td>
-                  <td style="color:#F44336; font-size:12px;">-${(parseFloat(catTopMarks) - parseFloat(marks)).toFixed(2)} marks behind top</td>
-                </tr>
-                <tr>
-                  <td style="font-weight:bold;">Candidate Marks:</td>
-                  <td style="font-weight:bold; color:#138808;">${marks}</td>
-                  <td style="font-weight:bold; color:#138808; font-size:12px;">Reference Base</td>
-                </tr>
-                <tr>
-                  <td style="font-weight:bold;">Category Average:</td>
-                  <td>${catAvg}</td>
-                  <td style="color:${parseFloat(marks) >= parseFloat(catAvg) ? '#138808' : '#F44336'}; font-weight:bold; font-size:12px;">
-                    ${parseFloat(marks) >= parseFloat(catAvg) ? '+' + (parseFloat(marks) - parseFloat(catAvg)).toFixed(2) + ' marks above avg' : (parseFloat(marks) - parseFloat(catAvg)).toFixed(2) + ' marks below avg'}
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-
-            <!-- Footer Verification & Watermark -->
-            <div class="footer">
-              <div>
-                Generated via RSSB Merit Search Engine · pavnxet
-              </div>
-              <div>
-                Date: ${new Date().toLocaleDateString()}
-              </div>
-            </div>
+        <div class="sc-metrics">
+          <div class="sc-metric-box">
+            <div class="sc-metric-lbl">Obtained Marks</div>
+            <div class="sc-metric-val sc-green">${marks}</div>
+            <div class="sc-metric-sub">out of 300 marks</div>
           </div>
-        </a>
-      </body>
-    </html>
-  `);
-  doc.close();
+          <div class="sc-metric-box">
+            <div class="sc-metric-lbl">Category Rank (${category})</div>
+            <div class="sc-metric-val sc-orange">#${catRank}</div>
+            <div class="sc-metric-sub">out of ${totalInCat} candidates</div>
+          </div>
+          <div class="sc-metric-box">
+            <div class="sc-metric-lbl">Performance Percentile</div>
+            <div class="sc-metric-val sc-dark">${percentile}%</div>
+            <div class="sc-metric-sub">Top ${(100 - parseFloat(percentile)).toFixed(1)}% of all candidates</div>
+          </div>
+        </div>
 
-  // Trigger print only after the popup window and all its resources (fonts, CSS) have fully loaded
-  printWin.onload = () => {
-    // Auto-close the popup after printing is dismissed
-    printWin.onafterprint = () => printWin.close();
-    printWin.print();
+        <div class="sc-section-title">Category Benchmark Comparison</div>
+        <table class="sc-bench">
+          <thead><tr><th>Metric</th><th>Marks</th><th>Status / Difference</th></tr></thead>
+          <tbody>
+            <tr>
+              <td class="sc-bold">Category Highest:</td>
+              <td class="sc-bold sc-red">${catTopMarks}</td>
+              <td class="sc-red" style="font-size:12px">-${(parseFloat(catTopMarks)-parseFloat(marks)).toFixed(2)} marks behind top</td>
+            </tr>
+            <tr>
+              <td class="sc-bold">Candidate Marks:</td>
+              <td class="sc-bold sc-green">${marks}</td>
+              <td class="sc-bold sc-green" style="font-size:12px">Reference Base</td>
+            </tr>
+            <tr>
+              <td class="sc-bold">Category Average:</td>
+              <td>${catAvg}</td>
+              <td style="color:${aboveBelowColor};font-weight:bold;font-size:12px">${aboveBelow}</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="sc-footer">
+          <div>Generated via RSSB Merit Search Engine Â· pavnxet</div>
+          <div>Date: ${new Date().toLocaleDateString()}</div>
+        </div>
+      </div>
+    </a>
+  `;
+
+  // Trigger native print on this page â€” no popup, no iframe, works everywhere
+  window.print();
+
+  // Clear the print container after the print dialog is dismissed
+  window.onafterprint = () => {
+    container.innerHTML = '';
+    window.onafterprint = null;
   };
 }
+
 </script>
+
+<!-- Hidden scorecard container - only visible during @media print -->
+<div id="print-scorecard"></div>
+
 </body>
 </html>
