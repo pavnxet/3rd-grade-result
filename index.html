@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>RSSB Merit List Search</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Noto+Sans:wght@300;400;500&display=swap');
 
@@ -1664,11 +1664,6 @@ function navigateInsight(direction) {
 }
 
 function downloadCandidatePDF(index) {
-  if (typeof html2pdf === 'undefined') {
-    alert('PDF library is still loading. Please try again in a few seconds.');
-    return;
-  }
-
   const candidate = filteredData[index];
   if (!candidate) {
     alert('Candidate data not found.');
@@ -1706,161 +1701,297 @@ function downloadCandidatePDF(index) {
   const catTop = sameCategory[sameCategory.length - 1];
   const catTopMarks = getMarks(catTop).toFixed(2);
 
-  // Construct print container dynamically
-  const element = document.createElement('div');
-  element.id = 'pdf-scorecard-temp'; // Assign unique ID for clone selection
-  element.style.width = '794px'; // Exactly A4 width at 96 DPI
-  element.style.boxSizing = 'border-box';
-  element.style.padding = '40px';
-  element.style.fontFamily = "'Noto Sans', sans-serif";
-  element.style.color = '#333';
-  element.style.background = '#fff';
-  element.style.border = '2px solid #FF6B00';
-  element.style.borderRadius = '8px';
-  element.style.position = 'absolute';
-  element.style.left = '-9999px';
-  element.style.top = '0';
+  // Create temporary iframe for printing
+  const iframe = document.createElement('iframe');
+  iframe.style.position = 'fixed';
+  iframe.style.left = '-9999px';
+  iframe.style.top = '0';
+  iframe.style.width = '0';
+  iframe.style.height = '0';
+  iframe.style.border = 'none';
+  document.body.appendChild(iframe);
 
-  element.innerHTML = `
-    <a href="https://pavnxet.github.io/3rd-grade-result/" target="_blank" style="text-decoration: none; color: inherit; display: block; cursor: pointer;">
-      <!-- Header -->
-      <div style="text-align:center; border-bottom:3px double #FF6B00; padding-bottom:15px; margin-bottom:25px;">
-        <div style="font-size:10px; color:#666; margin-bottom:8px; font-style:italic; font-family:'Noto Sans',sans-serif;">💡 Click anywhere on this document to verify this result online</div>
-        <h2 style="font-size:22px; margin:0; color:#0A1628; text-transform:uppercase; letter-spacing:0.5px; font-family:'Rajdhani',sans-serif;">Rajasthan Staff Selection Board (RSSB)</h2>
-        <h3 style="font-size:16px; margin:5px 0; color:#FF6B00; font-family:'Rajdhani',sans-serif;">Candidate Performance Report Card</h3>
-        <p style="font-size:12px; margin:5px 0; color:#666; font-family:'Noto Sans',sans-serif;">Subject: ${subjectName} · Level 2 Exam</p>
-      </div>
+  const doc = iframe.contentWindow.document;
+  doc.open();
+  doc.write(`
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <title>Result Card - ${roll}</title>
+        <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Noto+Sans:wght@400;700&display=swap" rel="stylesheet">
+        <style>
+          @page {
+            size: A4 portrait;
+            margin: 10mm;
+          }
+          body {
+            font-family: 'Noto Sans', sans-serif;
+            color: #333;
+            background: #fff;
+            margin: 0;
+            padding: 0;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+          }
+          .card {
+            border: 2px solid #FF6B00;
+            border-radius: 8px;
+            padding: 30px;
+            box-sizing: border-box;
+            background: #fff;
+            position: relative;
+          }
+          .header {
+            text-align: center;
+            border-bottom: 3px double #FF6B00;
+            padding-bottom: 12px;
+            margin-bottom: 20px;
+          }
+          .header-notice {
+            font-size: 10px;
+            color: #666;
+            margin-bottom: 8px;
+            font-style: italic;
+          }
+          .header-title {
+            font-size: 22px;
+            margin: 0;
+            color: #0A1628;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-family: 'Rajdhani', sans-serif;
+            font-weight: 700;
+          }
+          .header-subtitle {
+            font-size: 16px;
+            margin: 5px 0;
+            color: #FF6B00;
+            font-family: 'Rajdhani', sans-serif;
+            font-weight: 600;
+          }
+          .header-meta {
+            font-size: 12px;
+            margin: 5px 0;
+            color: #666;
+          }
+          .section-title {
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 4px;
+            margin-bottom: 10px;
+            margin-top: 15px;
+            color: #0A1628;
+            text-transform: uppercase;
+            font-size: 11px;
+            letter-spacing: 0.5px;
+            font-family: 'Rajdhani', sans-serif;
+            font-weight: 700;
+          }
+          .info-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            margin-bottom: 20px;
+          }
+          .info-table td {
+            padding: 6px 0;
+          }
+          .bold-label {
+            font-weight: bold;
+            width: 25%;
+          }
+          .merit-text {
+            color: #FF6B00;
+            font-weight: bold;
+          }
+          .metrics-grid {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+          }
+          .metric-box {
+            flex: 1;
+            border: 1px solid #ddd;
+            padding: 12px;
+            border-radius: 6px;
+            background: #fafafa;
+            text-align: center;
+          }
+          .metric-lbl {
+            font-size: 10px;
+            text-transform: uppercase;
+            color: #666;
+            font-weight: bold;
+          }
+          .metric-val {
+            font-size: 24px;
+            font-weight: bold;
+            margin-top: 5px;
+            font-family: 'Rajdhani', sans-serif;
+          }
+          .color-green { color: #138808; }
+          .color-orange { color: #FF6B00; }
+          .color-dark { color: #0A1628; }
+          .metric-sub {
+            font-size: 10px;
+            color: #888;
+            margin-top: 2px;
+          }
+          .benchmark-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            text-align: left;
+            margin-bottom: 20px;
+          }
+          .benchmark-table th {
+            background: #f0f0f0;
+            border-bottom: 1px solid #ddd;
+            padding: 8px;
+            font-weight: bold;
+          }
+          .benchmark-table td {
+            padding: 8px;
+            border-bottom: 1px solid #eee;
+          }
+          .benchmark-table tr:last-child td {
+            border-bottom: none;
+          }
+          .footer {
+            margin-top: 35px;
+            padding-top: 12px;
+            border-top: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            font-size: 10px;
+            color: #777;
+          }
+          a {
+            text-decoration: none;
+            color: inherit;
+          }
+        </style>
+      </head>
+      <body>
+        <a href="https://pavnxet.github.io/3rd-grade-result/" target="_blank">
+          <div class="card">
+            <!-- Header -->
+            <div class="header">
+              <div class="header-notice">💡 Click anywhere on this document to verify this result online</div>
+              <h2 class="header-title">Rajasthan Staff Selection Board (RSSB)</h2>
+              <h3 class="header-subtitle">Candidate Performance Report Card</h3>
+              <p class="header-meta">Subject: ${subjectName} · Level 2 Exam</p>
+            </div>
 
-      <!-- Candidate details table -->
-      <div style="margin-bottom:25px;">
-        <h4 style="border-bottom:1px solid #ddd; padding-bottom:4px; margin-bottom:10px; color:#0A1628; text-transform:uppercase; font-size:11px; letter-spacing:0.5px; font-family:'Rajdhani',sans-serif;">Candidate Information</h4>
-        <table style="width:100%; border-collapse:collapse; font-size:13px; font-family:'Noto Sans',sans-serif;">
-          <tr>
-            <td style="padding:5px 0; font-weight:bold; width:25%;">Roll Number:</td>
-            <td style="padding:5px 0; width:25%;">${roll}</td>
-            <td style="padding:5px 0; font-weight:bold; width:25%;">Merit Rank:</td>
-            <td style="padding:5px 0; width:25%; color:#FF6B00; font-weight:bold;">#${merit}</td>
-          </tr>
-          <tr>
-            <td style="padding:5px 0; font-weight:bold;">Candidate Name:</td>
-            <td style="padding:5px 0;" colspan="3">${name}</td>
-          </tr>
-          <tr>
-            <td style="padding:5px 0; font-weight:bold;">Father's Name:</td>
-            <td style="padding:5px 0;" colspan="3">${father}</td>
-          </tr>
-          <tr>
-            <td style="padding:5px 0; font-weight:bold;">Mother's Name:</td>
-            <td style="padding:5px 0;" colspan="3">${mother}</td>
-          </tr>
-          <tr>
-            <td style="padding:5px 0; font-weight:bold;">Gender:</td>
-            <td style="padding:5px 0;">${gender}</td>
-            <td style="padding:5px 0; font-weight:bold;">Category:</td>
-            <td style="padding:5px 0;">${category}</td>
-          </tr>
-          <tr>
-            <td style="padding:5px 0; font-weight:bold;">Sub Category:</td>
-            <td style="padding:5px 0;">${subCat}</td>
-            <td style="padding:5px 0; font-weight:bold;">TSP Candidate:</td>
-            <td style="padding:5px 0;">${tsp}</td>
-          </tr>
-        </table>
-      </div>
+            <!-- Candidate details table -->
+            <div class="section-title">Candidate Information</div>
+            <table class="info-table">
+              <tr>
+                <td class="bold-label">Roll Number:</td>
+                <td>${roll}</td>
+                <td class="bold-label">Merit Rank:</td>
+                <td class="merit-text">#${merit}</td>
+              </tr>
+              <tr>
+                <td class="bold-label">Candidate Name:</td>
+                <td colspan="3">${name}</td>
+              </tr>
+              <tr>
+                <td class="bold-label">Father's Name:</td>
+                <td colspan="3">${father}</td>
+              </tr>
+              <tr>
+                <td class="bold-label">Mother's Name:</td>
+                <td colspan="3">${mother}</td>
+              </tr>
+              <tr>
+                <td class="bold-label">Gender:</td>
+                <td>${gender}</td>
+                <td class="bold-label">Category:</td>
+                <td>${category}</td>
+              </tr>
+              <tr>
+                <td class="bold-label">Sub Category:</td>
+                <td>${subCat}</td>
+                <td class="bold-label">TSP Candidate:</td>
+                <td>${tsp}</td>
+              </tr>
+            </table>
 
-      <!-- Scores & Ranks -->
-      <div style="display:flex; gap:15px; margin-bottom:25px; font-family:'Noto Sans',sans-serif;">
-        <div style="flex:1; border:1px solid #ddd; padding:12px; border-radius:6px; background:#fafafa; text-align:center;">
-          <div style="font-size:10px; text-transform:uppercase; color:#666; font-weight:bold;">Obtained Marks</div>
-          <div style="font-size:24px; font-weight:bold; color:#138808; margin-top:5px; font-family:'Rajdhani',sans-serif;">${marks}</div>
-          <div style="font-size:10px; color:#888; margin-top:2px;">out of 300 marks</div>
-        </div>
-        <div style="flex:1; border:1px solid #ddd; padding:12px; border-radius:6px; background:#fafafa; text-align:center;">
-          <div style="font-size:10px; text-transform:uppercase; color:#666; font-weight:bold;">Category Rank (${category})</div>
-          <div style="font-size:24px; font-weight:bold; color:#FF6B00; margin-top:5px; font-family:'Rajdhani',sans-serif;">#${catRank}</div>
-          <div style="font-size:10px; color:#888; margin-top:2px;">out of ${totalInCat} candidates</div>
-        </div>
-        <div style="flex:1; border:1px solid #ddd; padding:12px; border-radius:6px; background:#fafafa; text-align:center;">
-          <div style="font-size:10px; text-transform:uppercase; color:#666; font-weight:bold;">Performance Percentile</div>
-          <div style="font-size:24px; font-weight:bold; color:#0A1628; margin-top:5px; font-family:'Rajdhani',sans-serif;">${percentile}%</div>
-          <div style="font-size:10px; color:#888; margin-top:2px;">Top ${(100-percentile).toFixed(1)}% of all candidates</div>
-        </div>
-      </div>
+            <!-- Scores & Ranks -->
+            <div class="metrics-grid">
+              <div class="metric-box">
+                <div class="metric-lbl">Obtained Marks</div>
+                <div class="metric-val color-green">${marks}</div>
+                <div class="metric-sub">out of 300 marks</div>
+              </div>
+              <div class="metric-box">
+                <div class="metric-lbl">Category Rank (${category})</div>
+                <div class="metric-val color-orange">#${catRank}</div>
+                <div class="metric-sub">out of ${totalInCat} candidates</div>
+              </div>
+              <div class="metric-box">
+                <div class="metric-lbl">Performance Percentile</div>
+                <div class="metric-val color-dark">${percentile}%</div>
+                <div class="metric-sub">Top ${(100-percentile).toFixed(1)}% of all candidates</div>
+              </div>
+            </div>
 
-      <!-- Category Benchmarks -->
-      <div style="margin-bottom:25px;">
-        <h4 style="border-bottom:1px solid #ddd; padding-bottom:4px; margin-bottom:10px; color:#0A1628; text-transform:uppercase; font-size:11px; letter-spacing:0.5px; font-family:'Rajdhani',sans-serif;">Category Benchmark Comparison</h4>
-        <table style="width:100%; border-collapse:collapse; font-size:13px; text-align:left; font-family:'Noto Sans',sans-serif;">
-          <thead>
-            <tr style="background:#f0f0f0; border-bottom:1px solid #ddd;">
-              <th style="padding:6px 8px;">Metric</th>
-              <th style="padding:6px 8px;">Marks</th>
-              <th style="padding:6px 8px;">Status / Difference</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr style="border-bottom:1px solid #eee;">
-              <td style="padding:6px 8px; font-weight:bold;">Category Highest:</td>
-              <td style="padding:6px 8px; font-weight:bold; color:#F44336;">${catTopMarks}</td>
-              <td style="padding:6px 8px; color:#F44336; font-size:12px;">-${(parseFloat(catTopMarks) - parseFloat(marks)).toFixed(2)} marks behind top</td>
-            </tr>
-            <tr style="border-bottom:1px solid #eee;">
-              <td style="padding:6px 8px; font-weight:bold;">Candidate Marks:</td>
-              <td style="padding:6px 8px; font-weight:bold; color:#138808;">${marks}</td>
-              <td style="padding:6px 8px; font-weight:bold; color:#138808; font-size:12px;">Reference Base</td>
-            </tr>
-            <tr style="border-bottom:1px solid #eee;">
-              <td style="padding:6px 8px; font-weight:bold;">Category Average:</td>
-              <td style="padding:6px 8px;">${catAvg}</td>
-              <td style="padding:6px 8px; color:${parseFloat(marks) >= parseFloat(catAvg) ? '#138808' : '#F44336'}; font-weight:bold; font-size:12px;">
-                ${parseFloat(marks) >= parseFloat(catAvg) ? '+' + (parseFloat(marks) - parseFloat(catAvg)).toFixed(2) + ' marks above avg' : (parseFloat(marks) - parseFloat(catAvg)).toFixed(2) + ' marks below avg'}
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+            <!-- Category Benchmarks -->
+            <div class="section-title">Category Benchmark Comparison</div>
+            <table class="benchmark-table">
+              <thead>
+                <tr>
+                  <th>Metric</th>
+                  <th>Marks</th>
+                  <th>Status / Difference</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="font-weight:bold;">Category Highest:</td>
+                  <td style="font-weight:bold; color:#F44336;">${catTopMarks}</td>
+                  <td style="color:#F44336; font-size:12px;">-${(parseFloat(catTopMarks) - parseFloat(marks)).toFixed(2)} marks behind top</td>
+                </tr>
+                <tr>
+                  <td style="font-weight:bold;">Candidate Marks:</td>
+                  <td style="font-weight:bold; color:#138808;">${marks}</td>
+                  <td style="font-weight:bold; color:#138808; font-size:12px;">Reference Base</td>
+                </tr>
+                <tr>
+                  <td style="font-weight:bold;">Category Average:</td>
+                  <td>${catAvg}</td>
+                  <td style="color:${parseFloat(marks) >= parseFloat(catAvg) ? '#138808' : '#F44336'}; font-weight:bold; font-size:12px;">
+                    ${parseFloat(marks) >= parseFloat(catAvg) ? '+' + (parseFloat(marks) - parseFloat(catAvg)).toFixed(2) + ' marks above avg' : (parseFloat(marks) - parseFloat(catAvg)).toFixed(2) + ' marks below avg'}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
 
-      <!-- Footer Verification & Watermark -->
-      <div style="margin-top:40px; padding-top:15px; border-top:1px solid #eee; display:flex; justify-content:space-between; font-size:10px; color:#777; font-family:'Noto Sans',sans-serif;">
-        <div>
-          Generated via RSSB Merit Search Engine · pavnxet
-        </div>
-        <div>
-          Date: ${new Date().toLocaleDateString()}
-        </div>
-      </div>
-    </a>
-  `;
+            <!-- Footer Verification & Watermark -->
+            <div class="footer">
+              <div>
+                Generated via RSSB Merit Search Engine · pavnxet
+              </div>
+              <div>
+                Date: ${new Date().toLocaleDateString()}
+              </div>
+            </div>
+          </div>
+        </a>
+      </body>
+    </html>
+  `);
+  doc.close();
 
-  // Append to DOM so html2canvas can render layout and fonts correctly
-  document.body.appendChild(element);
-
-  const opt = {
-    margin:       10, // A4 margins in mm
-    filename:     `result_${roll}_${name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.pdf`,
-    image:        { type: 'jpeg', quality: 0.98 },
-    html2canvas:  { 
-      scale: 2, 
-      useCORS: true,
-      windowWidth: 794, // Force html2canvas viewport rendering width to A4 size
-      onclone: (clonedDoc) => {
-        const clonedElement = clonedDoc.getElementById('pdf-scorecard-temp');
-        if (clonedElement) {
-          clonedElement.style.position = 'relative';
-          clonedElement.style.left = '0';
-          clonedElement.style.top = '0';
-        }
-      }
-    },
-    jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
-  };
-
-  html2pdf().set(opt).from(element).save().then(() => {
-    document.body.removeChild(element);
-  }).catch((err) => {
-    console.error('PDF generation failed:', err);
-    document.body.removeChild(element);
-  });
+  // Print after short delay to make sure styles and fonts are parsed
+  setTimeout(() => {
+    iframe.contentWindow.focus();
+    iframe.contentWindow.print();
+    // Clean up DOM
+    setTimeout(() => {
+      document.body.removeChild(iframe);
+    }, 1000);
+  }, 350);
 }
 </script>
 </body>
