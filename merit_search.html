@@ -472,6 +472,61 @@ function handleDrop(e) {
   if (file) loadCSV(file);
 }
 
+function cleanCSVText(text) {
+  const lines = text.split(/\r?\n/);
+  const cleanedLines = [];
+  let headerSeen = false;
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
+    
+    // Skip empty lines or comment lines
+    if (!line || line.startsWith('#')) {
+      continue;
+    }
+
+    // Skip lines that are just commas (e.g. ,,,,,,,,,)
+    if (/^,+$/.test(line.replace(/\s/g, ''))) {
+      continue;
+    }
+
+    // Skip lines containing specific noise keywords
+    if (line.includes('ANNEXURE-1') || 
+        line.includes('ANNEXURE - 1') ||
+        line.includes('Staff Selection Board') || 
+        line.includes('TEACHER LEVEL') || 
+        line.includes('Merit Wise list') || 
+        /^Page\s+\d+/i.test(line.replace(/^,+/,'').trim())) {
+      continue;
+    }
+
+    // Check if this line is a header line
+    const lowerLine = line.toLowerCase();
+    if (lowerLine.includes('merit') && (lowerLine.includes('roll') || lowerLine.includes('candidate'))) {
+      if (!headerSeen) {
+        headerSeen = true;
+        cleanedLines.push(line);
+      }
+      continue;
+    }
+
+    // Skip any lines before the header is seen
+    if (!headerSeen) {
+      continue;
+    }
+
+    // Skip repeating header lines (e.g. in later pages)
+    if (lowerLine.startsWith('merit,marks,')) {
+      continue;
+    }
+
+    // Keep data lines
+    cleanedLines.push(line);
+  }
+
+  return cleanedLines.join('\n');
+}
+
 function loadCSV(file) {
   if (!file) return;
   
@@ -479,13 +534,51 @@ function loadCSV(file) {
   const uploadBtn = document.querySelector('.upload-btn');
   if (uploadBtn) uploadBtn.style.display = 'none';
 
+  document.getElementById('progress-text').textContent = 'Reading dataset...';
+  
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const text = e.target.result;
+    document.getElementById('progress-text').textContent = 'Cleaning dataset...';
+    setTimeout(() => {
+      const cleanedText = cleanCSVText(text);
+      parseCleanedCSV(cleanedText);
+    }, 50);
+  };
+  reader.onerror = function() {
+    document.getElementById('progress-text').textContent = '❌ Error reading file.';
+  };
+  reader.readAsText(file);
+}
+
+function parseCleanedCSV(cleanedText) {
   let rowCount = 0;
   allData = [];
 
-  Papa.parse(file, {
+  Papa.parse(cleanedText, {
     header: true,
     skipEmptyLines: true,
     worker: false,
+    transformHeader: function(h) {
+      const clean = h.trim().replace(/\r/g, '').toLowerCase();
+      if (clean === 'merit' || clean === 'merit rank') return 'Merit';
+      if (clean === 'marks') return 'Marks';
+      if (clean === 'roll no' || clean === 'rollno' || clean === 'roll no.' || clean === 'roll') return 'Roll No';
+      if (clean === 'candidate name' || clean === 'name') return 'Candidate Name';
+      if (clean === 'father name' || clean === 'fathername') return 'Father Name';
+      if (clean === 'mother name' || clean === 'mothername') return 'Mother Name';
+      if (clean === 'gender') return 'Gender';
+      if (clean === 'category' || clean === 'cat') return 'Category';
+      if (clean === 'sub category' || clean === 'subcategory' || clean === 'subcat') return 'Sub Category';
+      if (clean === 'tsp') return 'TSP';
+      return h.trim().replace(/\r/g, '');
+    },
+    transform: function(value) {
+      if (typeof value === 'string') {
+        return value.trim().replace(/\r/g, '');
+      }
+      return value;
+    },
     step: function(result) {
       allData.push(result.data);
       rowCount++;
