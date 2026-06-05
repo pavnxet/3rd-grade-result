@@ -623,12 +623,15 @@
 <body>
 
 <header>
-  <div class="emblem">🏛️</div>
-  <div class="header-text">
+  <div class="emblem" style="cursor: pointer;" onclick="goBack()" title="Go to Home / Change Subject">🏛️</div>
+  <div class="header-text" style="cursor: pointer;" onclick="goBack()" title="Go to Home / Change Subject">
     <h1>RSSB Merit List — Teacher Level 2</h1>
     <p id="header-subtitle">Rajasthan Staff Selection Board · Teacher Level 2</p>
   </div>
-  <div class="badge" id="total-badge" style="display:none">0 Records</div>
+  <div style="margin-left: auto; display: flex; align-items: center; gap: 12px;">
+    <button class="back-btn" style="margin-bottom: 0; display: none; padding: 6px 12px; font-size: 13px;" id="home-btn" onclick="goBack()">🏠 Home</button>
+    <div class="badge" id="total-badge" style="display:none; margin-left: 0;">0 Records</div>
+  </div>
 </header>
 
 <div class="main">
@@ -808,9 +811,53 @@ const SUBJECT_NAMES = {
   sst: 'SST'
 };
 
+// Initialize routing on page load
+window.addEventListener('DOMContentLoaded', () => {
+  handleHashRoute();
+});
+
+// Listen to URL hash changes
+window.addEventListener('hashchange', () => {
+  handleHashRoute();
+});
+
+function handleHashRoute() {
+  const hash = window.location.hash.substring(1).toLowerCase();
+  if (DATA_SOURCES[hash]) {
+    if (currentSubject !== hash) {
+      selectSubject(hash);
+    }
+  } else {
+    if (document.getElementById('selector-section').style.display === 'none') {
+      showSelectorScreen();
+    }
+  }
+}
+
+function showSelectorScreen() {
+  document.getElementById('selector-section').style.display = 'block';
+  document.getElementById('upload-section').style.display = 'none';
+  document.getElementById('search-section').style.display = 'none';
+  document.getElementById('total-badge').style.display = 'none';
+  const homeBtn = document.getElementById('home-btn');
+  if (homeBtn) homeBtn.style.display = 'none';
+  document.getElementById('header-subtitle').textContent = 'Rajasthan Staff Selection Board · Teacher Level 2';
+  
+  if (window.location.hash !== '') {
+    window.location.hash = '';
+  }
+  
+  currentSubject = null;
+}
+
 // Select subject - entry point when user clicks a subject button
 function selectSubject(subject) {
   currentSubject = subject;
+  
+  // Update URL hash if not already matching
+  if (window.location.hash.substring(1).toLowerCase() !== subject) {
+    window.location.hash = subject;
+  }
   
   // Check if already loaded (caching)
   if (loadedSubjects[subject]) {
@@ -853,11 +900,7 @@ function showLoader(subject) {
 
 // Go back to subject selector
 function goBack() {
-  document.getElementById('selector-section').style.display = 'block';
-  document.getElementById('upload-section').style.display = 'none';
-  document.getElementById('search-section').style.display = 'none';
-  document.getElementById('total-badge').style.display = 'none';
-  document.getElementById('header-subtitle').textContent = 'Rajasthan Staff Selection Board · Teacher Level 2';
+  showSelectorScreen();
 }
 
 // Show results section after loading
@@ -865,6 +908,8 @@ function showResults(subject) {
   const name = SUBJECT_NAMES[subject];
   document.getElementById('total-badge').textContent = allData.length.toLocaleString() + ' Records (' + name + ')';
   document.getElementById('total-badge').style.display = '';
+  const homeBtn = document.getElementById('home-btn');
+  if (homeBtn) homeBtn.style.display = 'inline-flex';
   document.getElementById('header-subtitle').textContent = 'Rajasthan Staff Selection Board · ' + name;
   
   document.getElementById('selector-section').style.display = 'none';
