@@ -1708,6 +1708,7 @@ function downloadCandidatePDF(index) {
 
   // Construct print container dynamically
   const element = document.createElement('div');
+  element.id = 'pdf-scorecard-temp'; // Assign unique ID for clone selection
   element.style.width = '794px'; // Exactly A4 width at 96 DPI
   element.style.boxSizing = 'border-box';
   element.style.padding = '40px';
@@ -1841,7 +1842,15 @@ function downloadCandidatePDF(index) {
     html2canvas:  { 
       scale: 2, 
       useCORS: true,
-      windowWidth: 794 // Force html2canvas viewport rendering width to A4 size
+      windowWidth: 794, // Force html2canvas viewport rendering width to A4 size
+      onclone: (clonedDoc) => {
+        const clonedElement = clonedDoc.getElementById('pdf-scorecard-temp');
+        if (clonedElement) {
+          clonedElement.style.position = 'relative';
+          clonedElement.style.left = '0';
+          clonedElement.style.top = '0';
+        }
+      }
     },
     jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
   };
