@@ -251,6 +251,21 @@
     font-family: 'Noto Sans', sans-serif;
   }
 
+  .subj-btn .views {
+    font-size: 11px;
+    color: var(--saffron);
+    background: rgba(255,107,0,0.1);
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-weight: 500;
+    margin-top: 4px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    border: 1px solid rgba(255,107,0,0.2);
+    transition: all 0.2s;
+  }
+
   /* Back button */
   .back-btn {
     display: inline-flex;
@@ -656,16 +671,19 @@
         <span class="icon">🔬</span>
         <span class="name">Science / Maths</span>
         <span class="file">merit_list.csv</span>
+        <span class="views" id="count-science" style="display: none;">👁️ --</span>
       </button>
       <button class="subj-btn" onclick="selectSubject('hindi')">
         <span class="icon">📖</span>
         <span class="name">Hindi</span>
         <span class="file">3rd_hindi.csv</span>
+        <span class="views" id="count-hindi" style="display: none;">👁️ --</span>
       </button>
       <button class="subj-btn" onclick="selectSubject('sst')">
         <span class="icon">🌍</span>
         <span class="name">SST</span>
         <span class="file">3rd_sst.csv</span>
+        <span class="views" id="count-sst" style="display: none;">👁️ --</span>
       </button>
     </div>
   </div>
@@ -814,6 +832,7 @@ const SUBJECT_NAMES = {
 // Initialize routing on page load
 window.addEventListener('DOMContentLoaded', () => {
   handleHashRoute();
+  loadViewCounts();
 });
 
 // Listen to URL hash changes
@@ -848,11 +867,56 @@ function showSelectorScreen() {
   }
   
   currentSubject = null;
+  loadViewCounts(); // Refresh counts when returning to home
+}
+
+// Load view counts for all subjects
+function loadViewCounts() {
+  const subjects = ['science', 'hindi', 'sst'];
+  subjects.forEach(subject => {
+    fetch(`https://countapi.mileshilliard.com/api/v1/get/pavnxet-3rd-grade-result-${subject}`)
+      .then(response => {
+        if (!response.ok) throw new Error('API unreachable');
+        return response.json();
+      })
+      .then(data => {
+        const el = document.getElementById(`count-${subject}`);
+        if (el && typeof data.value !== 'undefined') {
+          el.textContent = `👁️ ${data.value.toLocaleString()}`;
+          el.style.display = 'inline-flex';
+        }
+      })
+      .catch(err => {
+        console.warn(`Failed to fetch count for ${subject}:`, err);
+      });
+  });
+}
+
+// Increment view count for a subject
+function incrementSubjectCount(subject) {
+  fetch(`https://countapi.mileshilliard.com/api/v1/hit/pavnxet-3rd-grade-result-${subject}`)
+    .then(response => {
+      if (!response.ok) throw new Error('API unreachable');
+      return response.json();
+    })
+    .then(data => {
+      const el = document.getElementById(`count-${subject}`);
+      if (el && typeof data.value !== 'undefined') {
+        el.textContent = `👁️ ${data.value.toLocaleString()}`;
+        el.style.display = 'inline-flex';
+      }
+    })
+    .catch(err => {
+      console.warn(`Failed to increment count for ${subject}:`, err);
+    });
 }
 
 // Select subject - entry point when user clicks a subject button
 function selectSubject(subject) {
   currentSubject = subject;
+  
+  // Track page visit/click
+  incrementSubjectCount(subject);
   
   // Update URL hash if not already matching
   if (window.location.hash.substring(1).toLowerCase() !== subject) {

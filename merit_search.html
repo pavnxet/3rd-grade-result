@@ -436,6 +436,10 @@ let debounceTimer;
 // Auto-load the CSV file on page load
 window.addEventListener('DOMContentLoaded', function() {
   fetchCSV();
+
+  // Increment Science/Maths view counter
+  fetch('https://countapi.mileshilliard.com/api/v1/hit/pavnxet-3rd-grade-result-science')
+    .catch(err => console.warn('Failed to increment view counter:', err));
 });
 
 function fetchCSV() {
