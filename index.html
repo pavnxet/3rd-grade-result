@@ -625,7 +625,7 @@
   <div class="emblem">🏛️</div>
   <div class="header-text">
     <h1>RSSB Merit List — Teacher Level 2</h1>
-    <p>Rajasthan Staff Selection Board · Science / Maths</p>
+    <p id="header-subtitle">Rajasthan Staff Selection Board · Teacher Level 2</p>
   </div>
   <div class="badge" id="total-badge" style="display:none">0 Records</div>
 </header>
@@ -854,6 +854,8 @@ function goBack() {
   document.getElementById('selector-section').style.display = 'block';
   document.getElementById('upload-section').style.display = 'none';
   document.getElementById('search-section').style.display = 'none';
+  document.getElementById('total-badge').style.display = 'none';
+  document.getElementById('header-subtitle').textContent = 'Rajasthan Staff Selection Board · Teacher Level 2';
 }
 
 // Show results section after loading
@@ -861,6 +863,7 @@ function showResults(subject) {
   const name = SUBJECT_NAMES[subject];
   document.getElementById('total-badge').textContent = allData.length.toLocaleString() + ' Records (' + name + ')';
   document.getElementById('total-badge').style.display = '';
+  document.getElementById('header-subtitle').textContent = 'Rajasthan Staff Selection Board · ' + name;
   
   document.getElementById('selector-section').style.display = 'none';
   document.getElementById('upload-section').style.display = 'none';
