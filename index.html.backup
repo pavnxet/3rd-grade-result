@@ -176,101 +176,6 @@
   
   .main { max-width: 1300px; margin: 0 auto; padding: 0 24px 28px; }
 
-  /* Subject Selector Section */
-  #selector-section {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 48px 32px;
-    text-align: center;
-    margin-bottom: 28px;
-    animation: fadeInUp 0.8s ease-out;
-  }
-  
-  #selector-section h2 {
-    font-family: 'Rajdhani', sans-serif;
-    font-size: 24px;
-    font-weight: 700;
-    color: var(--white);
-    margin-bottom: 8px;
-  }
-  
-  #selector-section p {
-    color: var(--muted);
-    font-size: 14px;
-    margin-bottom: 32px;
-  }
-  
-  .subject-buttons {
-    display: flex;
-    gap: 16px;
-    justify-content: center;
-    flex-wrap: wrap;
-  }
-  
-  .subj-btn {
-    background: var(--navy2);
-    border: 2px solid var(--border);
-    border-radius: 12px;
-    padding: 28px 36px;
-    min-width: 180px;
-    cursor: pointer;
-    transition: all 0.2s;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 12px;
-  }
-  
-  .subj-btn:hover {
-    border-color: var(--saffron);
-    background: rgba(255,107,0,0.08);
-    transform: translateY(-2px);
-  }
-  
-  .subj-btn.active {
-    border-color: var(--saffron);
-    background: rgba(255,107,0,0.12);
-  }
-  
-  .subj-btn .icon {
-    font-size: 42px;
-  }
-  
-  .subj-btn .name {
-    font-family: 'Rajdhani', sans-serif;
-    font-size: 18px;
-    font-weight: 600;
-    color: var(--text);
-  }
-  
-  .subj-btn .file {
-    font-size: 11px;
-    color: var(--muted);
-    font-family: 'Noto Sans', sans-serif;
-  }
-
-  /* Back button */
-  .back-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    background: transparent;
-    border: 1px solid var(--border);
-    color: var(--muted);
-    padding: 8px 16px;
-    border-radius: 8px;
-    font-size: 13px;
-    cursor: pointer;
-    margin-bottom: 16px;
-    transition: all 0.2s;
-  }
-  
-  .back-btn:hover {
-    border-color: var(--saffron);
-    color: var(--saffron);
-  }
-
   /* Upload zone */
   #upload-section {
     background: var(--surface);
@@ -643,34 +548,11 @@
     </div>
   </div>
 
-  <!-- Subject Selector Section -->
-  <div id="selector-section">
-    <h2>Select a Subject to View Results</h2>
-    <p>Choose the subject to load its merit list data</p>
-    <div class="subject-buttons">
-      <button class="subj-btn" onclick="selectSubject('science')">
-        <span class="icon">🔬</span>
-        <span class="name">Science / Maths</span>
-        <span class="file">merit_list.csv</span>
-      </button>
-      <button class="subj-btn" onclick="selectSubject('hindi')">
-        <span class="icon">📖</span>
-        <span class="name">Hindi</span>
-        <span class="file">3rd_hindi.csv</span>
-      </button>
-      <button class="subj-btn" onclick="selectSubject('sst')">
-        <span class="icon">🌍</span>
-        <span class="name">SST</span>
-        <span class="file">3rd_sst.csv</span>
-      </button>
-    </div>
-  </div>
-
-  <!-- Upload Section (used as loader) -->
-  <div id="upload-section" style="display:none;">
+  <!-- Upload Section -->
+  <div id="upload-section">
     <div class="upload-icon">⏳</div>
-    <h2 id="loader-title">Loading Merit List...</h2>
-    <p id="loader-subject">Please wait while we fetch the data</p>
+    <h2>Loading Merit List...</h2>
+    <p>Please wait while we fetch the data from merit_list.csv</p>
     <div id="progress-bar-wrap" style="display:block;">
       <p id="progress-text">Fetching records…</p>
       <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
@@ -680,9 +562,7 @@
 
   <!-- Search Section -->
   <div id="search-section">
-    
-    <button class="back-btn" onclick="goBack()">← Change Subject</button>
-    
+
     <div class="stats-row" id="stats-row"></div>
 
     <div class="search-panel">
@@ -788,89 +668,31 @@ let currentPage = 1;
 const PAGE_SIZE = 50;
 let debounceTimer;
 
-// Subject to CSV file mapping
-const DATA_SOURCES = {
-  science: 'merit_list.csv',
-  hindi: '3rd_hindi.csv',
-  sst: '3rd_sst.csv'
-};
+// Auto-load the CSV file on page load
+window.addEventListener('DOMContentLoaded', function() {
+  fetchCSV();
+});
 
-// Track current subject and caching
-let currentSubject = null;
-let loadedSubjects = {}; // Cache loaded data per subject
-
-// Subject display names
-const SUBJECT_NAMES = {
-  science: 'Science / Maths',
-  hindi: 'Hindi',
-  sst: 'SST'
-};
-
-// Select subject - entry point when user clicks a subject button
-function selectSubject(subject) {
-  // Check if already loaded (caching)
-  if (loadedSubjects[subject]) {
-    allData = loadedSubjects[subject];
-    showResults(subject);
-    return;
-  }
+function fetchCSV() {
+  document.getElementById('progress-bar-wrap').style.display = 'block';
   
-  currentSubject = subject;
-  showLoader(subject);
-  
-  // Fetch the CSV file for this subject
-  fetch(DATA_SOURCES[subject])
+  fetch('merit_list.csv')
     .then(response => {
-      if (!response.ok) throw new Error('Failed to load CSV for ' + subject);
+      if (!response.ok) throw new Error('Failed to load CSV');
       return response.blob();
     })
     .then(blob => {
-      loadCSV(blob, subject);
+      loadCSV(blob);
     })
     .catch(err => {
       console.error('Error loading CSV:', err);
-      document.getElementById('progress-text').textContent = '❌ Error loading file. Please try again.';
-      document.getElementById('loader-subject').textContent = 'File not found: ' + DATA_SOURCES[subject];
+      document.getElementById('progress-text').textContent = 'Error loading CSV. Please upload manually.';
+      document.getElementById('upload-section').onclick = function() {
+        document.getElementById('csv-input').click();
+      };
       document.querySelector('.upload-icon').textContent = '⚠️';
+      document.querySelector('.upload-btn')?.remove();
     });
-}
-
-// Show loader section with subject-specific text
-function showLoader(subject) {
-  const name = SUBJECT_NAMES[subject];
-  document.getElementById('loader-title').textContent = 'Loading ' + name + ' Results...';
-  document.getElementById('loader-subject').textContent = 'Fetching data from ' + DATA_SOURCES[subject];
-  document.getElementById('progress-fill').style.width = '0%';
-  document.getElementById('progress-text').textContent = 'Fetching records…';
-  document.querySelector('.upload-icon').textContent = '⏳';
-  
-  document.getElementById('selector-section').style.display = 'none';
-  document.getElementById('upload-section').style.display = 'block';
-  document.getElementById('search-section').style.display = 'none';
-}
-
-// Go back to subject selector
-function goBack() {
-  document.getElementById('selector-section').style.display = 'block';
-  document.getElementById('upload-section').style.display = 'none';
-  document.getElementById('search-section').style.display = 'none';
-}
-
-// Show results section after loading
-function showResults(subject) {
-  const name = SUBJECT_NAMES[subject];
-  document.getElementById('total-badge').textContent = allData.length.toLocaleString() + ' Records (' + name + ')';
-  document.getElementById('total-badge').style.display = '';
-  
-  document.getElementById('selector-section').style.display = 'none';
-  document.getElementById('upload-section').style.display = 'none';
-  document.getElementById('search-section').style.display = 'block';
-  
-  // Clear search filters
-  clearAll();
-  
-  // Initialize stats and table
-  initSearch(subject);
 }
 
 function debSearch() {
@@ -885,9 +707,13 @@ function handleDrop(e) {
   if (file) loadCSV(file);
 }
 
-function loadCSV(file, subject) {
+function loadCSV(file) {
   if (!file) return;
   
+  // Hide upload button if it exists (since we're auto-loading)
+  const uploadBtn = document.querySelector('.upload-btn');
+  if (uploadBtn) uploadBtn.style.display = 'none';
+
   let rowCount = 0;
   allData = [];
 
@@ -907,57 +733,23 @@ function loadCSV(file, subject) {
     complete: function() {
       document.getElementById('progress-fill').style.width = '100%';
       document.getElementById('progress-text').textContent = `✓ ${allData.length.toLocaleString()} records loaded!`;
-      
-      // Cache the data for this subject
-      if (subject) {
-        loadedSubjects[subject] = allData;
-      }
-      
-      setTimeout(() => showResults(subject), 400);
+      setTimeout(initSearch, 400);
     }
   });
 }
 
-function initSearch(subject) {
-  // Stats calculation - handle ALL possible field name variations
-  // Science: Gender, Category, TSP
-  // Hindi/SST: Gender , Cat, TSP (with trailing spaces)
-  
-  const males = allData.filter(r => {
-    const g = r.Gender || r.gender || r['Gender '] || r['gender '] || '';
-    return g === 'MALE' || g === 'Male' || g === 'male';
-  }).length;
-  
-  const females = allData.filter(r => {
-    const g = r.Gender || r.gender || r['Gender '] || r['gender '] || '';
-    return g === 'FEMALE' || g === 'Female' || g === 'female';
-  }).length;
-  
-  const tsp = allData.filter(r => {
-    const t = r.TSP || r.tsp || r['TSP '] || r['tsp '] || '';
-    return t === 'YES' || t === 'Yes' || t === 'yes';
-  }).length;
-  
+function initSearch() {
+  document.getElementById('upload-section').style.display = 'none';
+  document.getElementById('search-section').style.display = 'block';
+  document.getElementById('total-badge').style.display = '';
+  document.getElementById('total-badge').textContent = allData.length.toLocaleString() + ' Records';
+
+  // Stats
+  const males = allData.filter(r => r.Gender === 'MALE').length;
+  const females = allData.filter(r => r.Gender === 'FEMALE').length;
+  const tsp = allData.filter(r => r.TSP === 'YES').length;
   const cats = {};
-  allData.forEach(r => { 
-    // Handle Category (Science) vs Cat (Hindi/SST) with possible trailing spaces
-    let cat = r.Category || r.category || r.Cat || r.cat || r['Category '] || r['Cat '] || 'Unknown';
-    // Normalize category values
-    if (cat === 'GEN') cat = 'GEN';
-    else if (cat === 'Gen') cat = 'GEN';
-    else if (cat === 'gen') cat = 'GEN';
-    else if (cat === 'OBC') cat = 'OBC';
-    else if (cat === 'Obc') cat = 'OBC';
-    else if (cat === 'obc') cat = 'OBC';
-    else if (cat === 'SC') cat = 'SC';
-    else if (cat === 'Sc') cat = 'SC';
-    else if (cat === 'sc') cat = 'SC';
-    else if (cat === 'ST') cat = 'ST';
-    else if (cat === 'EWS') cat = 'EWS';
-    else if (cat === 'MBC') cat = 'MBC';
-    else if (cat === 'SBC') cat = 'SBC';
-    cats[cat] = (cats[cat]||0)+1; 
-  });
+  allData.forEach(r => { cats[r.Category] = (cats[r.Category]||0)+1; });
 
   const statsHtml = [
     { val: allData.length.toLocaleString(), lbl: 'Total Candidates' },
@@ -998,48 +790,20 @@ function doSearch() {
   const marksRange = parseRange(document.getElementById('f-marks').value);
 
   filteredData = allData.filter(r => {
-    // Handle ALL field name variations across CSV files
-    // Science: "Candidate Name", "Roll No", "Gender", "Category", "TSP"
-    // Hindi/SST: "Candidate Name ", "Roll no ", "Gender ", "Cat", "TSP " (trailing spaces)
-    const candidateName = r['Candidate Name'] || r['Candidate Name '] || r['candidate name'] || r['Name'] || '';
-    const rollNo = r['Roll No'] || r['Roll No '] || r['roll no'] || r['RollNo'] || '';
-    const fatherName = r['Father Name'] || r['Father Name '] || r['father name'] || r['FatherName'] || '';
-    const motherName = r['Mother Name'] || r['Mother Name '] || r['mother name'] || r['MotherName'] || '';
-    
-    // Gender with trailing space handling
-    let genderVal = r.Gender || r.gender || r['Gender '] || r['gender '] || '';
-    // Normalize gender
-    if (genderVal === 'Male' || genderVal === 'male') genderVal = 'MALE';
-    if (genderVal === 'Female' || genderVal === 'female') genderVal = 'FEMALE';
-    
-    // Category vs Cat with trailing space handling
-    let categoryVal = r.Category || r.category || r.Cat || r.cat || r['Category '] || r['Cat '] || '';
-    // Normalize category for filtering
-    if (categoryVal === 'Gen' || categoryVal === 'gen') categoryVal = 'GEN';
-    if (categoryVal === 'Obc' || categoryVal === 'obc') categoryVal = 'OBC';
-    if (categoryVal === 'Sc' || categoryVal === 'sc') categoryVal = 'SC';
-    
-    // TSP with trailing space handling
-    let tspValRow = r.TSP || r.tsp || r['TSP '] || r['tsp '] || '';
-    if (tspValRow === 'Yes' || tspValRow === 'yes') tspValRow = 'YES';
-    
-    const meritVal = r.Merit || r.merit || r['Merit Rank'] || '';
-    const marksVal = r.Marks || r.marks || '';
-    
-    if (name && !candidateName.toUpperCase().includes(name)) return false;
-    if (roll && !rollNo.includes(roll)) return false;
-    if (father && !fatherName.toUpperCase().includes(father)) return false;
-    if (mother && !motherName.toUpperCase().includes(mother)) return false;
-    if (gender && genderVal !== gender) return false;
-    if (cat && categoryVal !== cat) return false;
-    if (tspVal === 'YES' && tspValRow !== 'YES') return false;
-    if (tspVal === '__no__' && tspValRow === 'YES') return false;
+    if (name && !(r['Candidate Name']||'').toUpperCase().includes(name)) return false;
+    if (roll && !(r['Roll No']||'').includes(roll)) return false;
+    if (father && !(r['Father Name']||'').toUpperCase().includes(father)) return false;
+    if (mother && !(r['Mother Name']||'').toUpperCase().includes(mother)) return false;
+    if (gender && r.Gender !== gender) return false;
+    if (cat && r.Category !== cat) return false;
+    if (tspVal === 'YES' && r.TSP !== 'YES') return false;
+    if (tspVal === '__no__' && r.TSP === 'YES') return false;
     if (meritRange) {
-      const m = parseInt(meritVal);
+      const m = parseInt(r.Merit);
       if (isNaN(m) || m < meritRange.min || m > meritRange.max) return false;
     }
     if (marksRange) {
-      const m = parseFloat(marksVal);
+      const m = parseFloat(r.Marks);
       if (isNaN(m) || m < marksRange.min || m > marksRange.max) return false;
     }
     return true;
@@ -1091,43 +855,18 @@ function renderTable() {
 
   tbody.innerHTML = pageData.map((r, idx) => {
     const globalIndex = start + idx;
-    // Handle ALL different CSV field names (Science vs Hindi/SST with trailing spaces)
-    const meritVal = r.Merit || r.merit || r['Merit Rank'] || '';
-    const marksVal = r.Marks || r.marks || '';
-    const rollNo = r['Roll No'] || r['Roll No '] || r['roll no'] || r.RollNo || '';
-    const candidateName = r['Candidate Name'] || r['Candidate Name '] || r['candidate name'] || r.Name || '';
-    const fatherName = r['Father Name'] || r['Father Name '] || r['father name'] || r.FatherName || '';
-    const motherName = r['Mother Name'] || r['Mother Name '] || r['mother name'] || r.MotherName || '';
-    
-    // Gender with trailing space and case normalization
-    let genderVal = r.Gender || r.gender || r['Gender '] || r['gender '] || '';
-    if (genderVal === 'Male' || genderVal === 'male') genderVal = 'MALE';
-    if (genderVal === 'Female' || genderVal === 'female') genderVal = 'FEMALE';
-    
-    // Category vs Cat with trailing space and case normalization
-    let categoryVal = r.Category || r.category || r.Cat || r.cat || r['Category '] || r['Cat '] || '';
-    if (categoryVal === 'Gen' || categoryVal === 'gen') categoryVal = 'GEN';
-    if (categoryVal === 'Obc' || categoryVal === 'obc') categoryVal = 'OBC';
-    if (categoryVal === 'Sc' || categoryVal === 'sc') categoryVal = 'SC';
-    
-    const subCatVal = r['Sub Category'] || r['sub category'] || r.SubCategory || '';
-    
-    // TSP with trailing space and case normalization
-    let tspValRow = r.TSP || r.tsp || r['TSP '] || r['tsp '] || '';
-    if (tspValRow === 'Yes' || tspValRow === 'yes') tspValRow = 'YES';
-    
     return `
     <tr data-index="${globalIndex}">
-      <td class="merit-cell">#${escHtml(meritVal)}</td>
-      <td class="marks-cell">${escHtml(marksVal)}</td>
-      <td>${highlight(rollNo, rollQ)}</td>
-      <td class="name-cell">${highlight(candidateName, nameQ)}</td>
-      <td>${highlight(fatherName, fatherQ)}</td>
-      <td>${highlight(motherName, motherQ)}</td>
-      <td>${genderPill(genderVal)}</td>
-      <td>${catPill(categoryVal)}</td>
-      <td>${escHtml(subCatVal||'')}</td>
-      <td>${tspValRow==='YES' ? '<span class="pill tsp-yes">✓ TSP</span>' : ''}</td>
+      <td class="merit-cell">#${escHtml(r.Merit)}</td>
+      <td class="marks-cell">${escHtml(r.Marks)}</td>
+      <td>${highlight(r['Roll No'], rollQ)}</td>
+      <td class="name-cell">${highlight(r['Candidate Name'], nameQ)}</td>
+      <td>${highlight(r['Father Name'], fatherQ)}</td>
+      <td>${highlight(r['Mother Name'], motherQ)}</td>
+      <td>${genderPill(r.Gender)}</td>
+      <td>${catPill(r.Category)}</td>
+      <td>${escHtml(r['Sub Category']||'')}</td>
+      <td>${r.TSP==='YES' ? '<span class="pill tsp-yes">✓ TSP</span>' : ''}</td>
       <td><button class="nav-btn" style="padding:4px 10px;font-size:12px;cursor:pointer;" onclick="event.stopPropagation(); console.log('View button clicked, index:', ${globalIndex}); openInsight(${globalIndex})">📊 View</button></td>
     </tr>
   `;
@@ -1181,31 +920,12 @@ function clearAll() {
 }
 
 function exportResults() {
-  // Get subject name for filename
-  const subjectName = currentSubject ? SUBJECT_NAMES[currentSubject] : 'results';
-  const safeName = subjectName.replace(/[^a-z0-9]/gi, '_').toLowerCase();
-  
   const headers = ['Merit','Marks','Roll No','Candidate Name','Father Name','Mother Name','Gender','Category','Sub Category','TSP'];
-  const rows = filteredData.map(r => {
-    // Handle ALL different field name formats (Science vs Hindi/SST with trailing spaces)
-    const row = [
-      r.Merit || r.merit || r['Merit Rank'] || '',
-      r.Marks || r.marks || '',
-      r['Roll No'] || r['Roll No '] || r['roll no'] || r.RollNo || '',
-      r['Candidate Name'] || r['Candidate Name '] || r['candidate name'] || r.Name || '',
-      r['Father Name'] || r['Father Name '] || r['father name'] || r.FatherName || '',
-      r['Mother Name'] || r['Mother Name '] || r['mother name'] || r.MotherName || '',
-      r.Gender || r.gender || r['Gender '] || r['gender '] || '',
-      r.Category || r.category || r.Cat || r.cat || r['Category '] || r['Cat '] || '',
-      r['Sub Category'] || r['sub category'] || r.SubCategory || '',
-      r.TSP || r.tsp || r['TSP '] || r['tsp '] || ''
-    ];
-    return row.map(v => `"${(v||'').replace(/"/g,'""')}"`).join(',');
-  });
+  const rows = filteredData.map(r => headers.map(h => `"${(r[h]||'').replace(/"/g,'""')}"`).join(','));
   const csv = [headers.join(','), ...rows].join('\n');
   const a = document.createElement('a');
   a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
-  a.download = `filtered_${safeName}_results.csv`;
+  a.download = 'filtered_results.csv';
   a.click();
 }
 
@@ -1225,57 +945,35 @@ function openInsight(index) {
   const candidate = filteredData[index];
   currentInsightIndex = index;
   
-  // Handle ALL different field name formats (Science vs Hindi/SST with trailing spaces)
-  let category = candidate.Category || candidate.category || candidate.Cat || candidate.cat || candidate['Category '] || candidate['Cat '] || 'GEN';
-  // Normalize category
-  if (category === 'Gen' || category === 'gen') category = 'GEN';
-  if (category === 'Obc' || category === 'obc') category = 'OBC';
-  if (category === 'Sc' || category === 'sc') category = 'SC';
-  
-  const rollNo = candidate['Roll No'] || candidate['Roll No '] || candidate['roll no'] || candidate.RollNo || '';
-  const meritVal = candidate.Merit || candidate.merit || candidate['Merit Rank'] || '0';
-  const marksVal = candidate.Marks || candidate.marks || '0';
-  const candidateName = candidate['Candidate Name'] || candidate['Candidate Name '] || candidate['candidate name'] || candidate.Name || '';
-  
-  // Helper to get marks from any format
-  const getMarks = (d) => parseFloat(d.Marks || d.marks || 0);
-  const getRollNo = (d) => d['Roll No'] || d['Roll No '] || d['roll no'] || d.RollNo || '';
-  const getCategory = (d) => {
-    let c = d.Category || d.category || d.Cat || d.cat || d['Category '] || d['Cat '] || 'GEN';
-    if (c === 'Gen' || c === 'gen') return 'GEN';
-    if (c === 'Obc' || c === 'obc') return 'OBC';
-    if (c === 'Sc' || c === 'sc') return 'SC';
-    return c;
-  };
-  
   // Calculate category rank
-  const sameCategory = allData.filter(d => getCategory(d) === category).sort((a,b) => getMarks(a) - getMarks(b));
-  const catPosition = sameCategory.findIndex(d => getRollNo(d) === rollNo) + 1;
+  const category = candidate['Category'] || 'GEN';
+  const sameCategory = allData.filter(d => (d['Category'] || 'GEN') === category).sort((a,b) => parseFloat(a.Marks||0) - parseFloat(b.Marks||0));
+  const catPosition = sameCategory.findIndex(d => d['Roll No'] === candidate['Roll No']) + 1;
   const totalInCat = sameCategory.length;
-  const catRank = totalInCat - catPosition + 1;
+  const catRank = totalInCat - catPosition + 1; // Rank from top (how many behind including self)
   
   // Find neighbors in filtered results
   const prevCandidate = index > 0 ? filteredData[index - 1] : null;
   const nextCandidate = index < filteredData.length - 1 ? filteredData[index + 1] : null;
   
   // Calculate percentile
-  const globalRank = parseInt(meritVal || '0');
+  const globalRank = parseInt(candidate['Merit'] || '0');
   const totalCandidates = allData.length;
   const percentile = ((totalCandidates - globalRank) / totalCandidates * 100).toFixed(1);
   
   // Calculate gaps
   let gapAbove = '', gapBelow = '';
   if (prevCandidate) {
-    const diff = parseFloat(marksVal||0) - getMarks(prevCandidate);
+    const diff = parseFloat(candidate.Marks||0) - parseFloat(prevCandidate.Marks||0);
     gapAbove = diff.toFixed(2);
   }
   if (nextCandidate) {
-    const diff = getMarks(nextCandidate) - parseFloat(marksVal||0);
+    const diff = parseFloat(nextCandidate.Marks||0) - parseFloat(candidate.Marks||0);
     gapBelow = diff.toFixed(2);
   }
   
   // Get category stats
-  const catAvg = sameCategory.reduce((sum, d) => sum + getMarks(d), 0) / totalInCat;
+  const catAvg = sameCategory.reduce((sum, d) => sum + parseFloat(d.Marks||0), 0) / totalInCat;
   const catTop = sameCategory[sameCategory.length - 1];
   const catBottom = sameCategory[0];
   
