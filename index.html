@@ -676,6 +676,7 @@
       <p id="progress-text">Fetching records…</p>
       <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
     </div>
+    <button class="back-btn" style="margin-top:20px; display:inline-block;" onclick="goBack()">← Cancel & Go Back</button>
     <input type="file" id="csv-input" accept=".csv" onchange="loadCSV(this.files[0])" style="display:none;">
   </div>
 
@@ -809,14 +810,14 @@ const SUBJECT_NAMES = {
 
 // Select subject - entry point when user clicks a subject button
 function selectSubject(subject) {
+  currentSubject = subject;
+  
   // Check if already loaded (caching)
   if (loadedSubjects[subject]) {
     allData = loadedSubjects[subject];
     showResults(subject);
     return;
   }
-  
-  currentSubject = subject;
   showLoader(subject);
   
   // Fetch the CSV file for this subject
@@ -1020,22 +1021,26 @@ function initSearch(subject) {
   // Headers are now clean: Gender, Category/Cat, TSP (no trailing spaces or \r)
   
   const males = allData.filter(r => {
+    if (!r) return false;
     const g = r.Gender || r.gender || '';
     return g.toUpperCase() === 'MALE';
   }).length;
   
   const females = allData.filter(r => {
+    if (!r) return false;
     const g = r.Gender || r.gender || '';
     return g.toUpperCase() === 'FEMALE';
   }).length;
   
   const tsp = allData.filter(r => {
+    if (!r) return false;
     const t = r.TSP || r.tsp || '';
     return t.toUpperCase() === 'YES';
   }).length;
   
   const cats = {};
   allData.forEach(r => { 
+    if (!r) return;
     // Handle Category (Science) vs Cat (Hindi/SST) - already cleaned
     let cat = r.Category || r.category || r.Cat || r.cat || 'Unknown';
     // Normalize category values to uppercase
@@ -1089,6 +1094,7 @@ function doSearch() {
   const marksRange = parseRange(document.getElementById('f-marks').value);
 
   filteredData = allData.filter(r => {
+    if (!r) return false;
     // Data is already cleaned by transformHeader/transform in loadCSV()
     const candidateName = r['Candidate Name'] || r['candidate name'] || r['Name'] || '';
     const rollNo = r['Roll No'] || r['roll no'] || r['RollNo'] || '';
