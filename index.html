@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>RSSB Merit List Search</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Noto+Sans:wght@300;400;500&display=swap');
 
@@ -1356,7 +1357,10 @@ function openInsight(index) {
       <div class="modal-content">
         <div class="modal-header">
           <div class="modal-title">📊 Candidate Insights</div>
-          <button class="modal-close" onclick="closeInsight()">×</button>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <button class="export-btn" style="background:transparent;border:1px solid var(--saffron);color:var(--saffron-light);padding:6px 12px;font-size:13px;" onclick="downloadCandidatePDF(${index})">📄 Save PDF</button>
+            <button class="modal-close" onclick="closeInsight()">×</button>
+          </div>
         </div>
         <div class="modal-body">
           <div class="insight-grid">
@@ -1542,6 +1546,180 @@ function navigateInsight(direction) {
       if (row) row.scrollIntoView({behavior:'smooth',block:'center'});
     }
   }, 200);
+}
+
+function downloadCandidatePDF(index) {
+  if (typeof html2pdf === 'undefined') {
+    alert('PDF library is still loading. Please try again in a few seconds.');
+    return;
+  }
+
+  const candidate = filteredData[index];
+  if (!candidate) {
+    alert('Candidate data not found.');
+    return;
+  }
+
+  const subjectName = currentSubject ? SUBJECT_NAMES[currentSubject] : 'Teacher Level 2';
+  
+  // Extract all details (using normalized standard keys)
+  const name = candidate['Candidate Name'] || 'N/A';
+  const roll = candidate['Roll No'] || 'N/A';
+  const father = candidate['Father Name'] || 'N/A';
+  const mother = candidate['Mother Name'] || 'N/A';
+  const marks = candidate['Marks'] || '0';
+  const merit = candidate['Merit'] || '0';
+  const gender = candidate['Gender'] || 'N/A';
+  const category = candidate['Category'] || 'N/A';
+  const tsp = candidate['TSP'] === 'YES' ? 'YES (TSP)' : 'NO (Non-TSP)';
+  const subCat = candidate['Sub Category'] || 'None';
+
+  // Calculate category ranks
+  const getMarks = (d) => parseFloat(d.Marks || d.marks || 0);
+  const getRollNo = (d) => d['Roll No'] || d['roll no'] || d.RollNo || '';
+  const getCategory = (d) => (d.Category || d.category || d.Cat || d.cat || 'GEN').toUpperCase();
+  
+  const sameCategory = allData.filter(d => getCategory(d) === category.toUpperCase()).sort((a,b) => getMarks(a) - getMarks(b));
+  const catPosition = sameCategory.findIndex(d => getRollNo(d) === roll) + 1;
+  const totalInCat = sameCategory.length;
+  const catRank = totalInCat - catPosition + 1;
+  const totalCandidates = allData.length;
+  const percentile = ((totalCandidates - parseInt(merit)) / totalCandidates * 100).toFixed(1);
+
+  // Category average
+  const catAvg = (sameCategory.reduce((sum, d) => sum + getMarks(d), 0) / totalInCat).toFixed(2);
+  const catTop = sameCategory[sameCategory.length - 1];
+  const catTopMarks = getMarks(catTop).toFixed(2);
+
+  // Construct print container dynamically
+  const element = document.createElement('div');
+  element.style.padding = '40px';
+  element.style.fontFamily = "'Noto Sans', sans-serif";
+  element.style.color = '#333';
+  element.style.background = '#fff';
+  element.style.border = '2px solid #FF6B00';
+  element.style.borderRadius = '8px';
+  element.style.width = '700px';
+  element.style.margin = '0 auto';
+  element.style.position = 'relative';
+
+  element.innerHTML = `
+    <!-- Header -->
+    <div style="text-align:center; border-bottom:3px double #FF6B00; padding-bottom:15px; margin-bottom:25px;">
+      <h2 style="font-size:22px; margin:0; color:#0A1628; text-transform:uppercase; letter-spacing:0.5px;">Rajasthan Staff Selection Board (RSSB)</h2>
+      <h3 style="font-size:16px; margin:5px 0; color:#FF6B00;">Candidate Performance Report Card</h3>
+      <p style="font-size:12px; margin:5px 0; color:#666;">Subject: ${subjectName} · Level 2 Exam</p>
+    </div>
+
+    <!-- Candidate details table -->
+    <div style="margin-bottom:25px;">
+      <h4 style="border-bottom:1px solid #ddd; padding-bottom:4px; margin-bottom:10px; color:#0A1628; text-transform:uppercase; font-size:11px; letter-spacing:0.5px;">Candidate Information</h4>
+      <table style="width:100%; border-collapse:collapse; font-size:13px;">
+        <tr>
+          <td style="padding:5px 0; font-weight:bold; width:25%;">Roll Number:</td>
+          <td style="padding:5px 0; width:25%;">${roll}</td>
+          <td style="padding:5px 0; font-weight:bold; width:25%;">Merit Rank:</td>
+          <td style="padding:5px 0; width:25%; color:#FF6B00; font-weight:bold;">#${merit}</td>
+        </tr>
+        <tr>
+          <td style="padding:5px 0; font-weight:bold;">Candidate Name:</td>
+          <td style="padding:5px 0;" colspan="3">${name}</td>
+        </tr>
+        <tr>
+          <td style="padding:5px 0; font-weight:bold;">Father's Name:</td>
+          <td style="padding:5px 0;" colspan="3">${father}</td>
+        </tr>
+        <tr>
+          <td style="padding:5px 0; font-weight:bold;">Mother's Name:</td>
+          <td style="padding:5px 0;" colspan="3">${mother}</td>
+        </tr>
+        <tr>
+          <td style="padding:5px 0; font-weight:bold;">Gender:</td>
+          <td style="padding:5px 0;">${gender}</td>
+          <td style="padding:5px 0; font-weight:bold;">Category:</td>
+          <td style="padding:5px 0;">${category}</td>
+        </tr>
+        <tr>
+          <td style="padding:5px 0; font-weight:bold;">Sub Category:</td>
+          <td style="padding:5px 0;">${subCat}</td>
+          <td style="padding:5px 0; font-weight:bold;">TSP Candidate:</td>
+          <td style="padding:5px 0;">${tsp}</td>
+        </tr>
+      </table>
+    </div>
+
+    <!-- Scores & Ranks -->
+    <div style="display:flex; gap:15px; margin-bottom:25px;">
+      <div style="flex:1; border:1px solid #ddd; padding:12px; border-radius:6px; background:#fafafa; text-align:center;">
+        <div style="font-size:10px; text-transform:uppercase; color:#666; font-weight:bold;">Obtained Marks</div>
+        <div style="font-size:24px; font-weight:bold; color:#138808; margin-top:5px;">${marks}</div>
+        <div style="font-size:10px; color:#888; margin-top:2px;">out of 300 marks</div>
+      </div>
+      <div style="flex:1; border:1px solid #ddd; padding:12px; border-radius:6px; background:#fafafa; text-align:center;">
+        <div style="font-size:10px; text-transform:uppercase; color:#666; font-weight:bold;">Category Rank (${category})</div>
+        <div style="font-size:24px; font-weight:bold; color:#FF6B00; margin-top:5px;">#${catRank}</div>
+        <div style="font-size:10px; color:#888; margin-top:2px;">out of ${totalInCat} candidates</div>
+      </div>
+      <div style="flex:1; border:1px solid #ddd; padding:12px; border-radius:6px; background:#fafafa; text-align:center;">
+        <div style="font-size:10px; text-transform:uppercase; color:#666; font-weight:bold;">Performance Percentile</div>
+        <div style="font-size:24px; font-weight:bold; color:#0A1628; margin-top:5px;">${percentile}%</div>
+        <div style="font-size:10px; color:#888; margin-top:2px;">Top ${(100-percentile).toFixed(1)}% of all candidates</div>
+      </div>
+    </div>
+
+    <!-- Category Benchmarks -->
+    <div style="margin-bottom:25px;">
+      <h4 style="border-bottom:1px solid #ddd; padding-bottom:4px; margin-bottom:10px; color:#0A1628; text-transform:uppercase; font-size:11px; letter-spacing:0.5px;">Category Benchmark Comparison</h4>
+      <table style="width:100%; border-collapse:collapse; font-size:13px; text-align:left;">
+        <thead>
+          <tr style="background:#f0f0f0; border-bottom:1px solid #ddd;">
+            <th style="padding:6px 8px;">Metric</th>
+            <th style="padding:6px 8px;">Marks</th>
+            <th style="padding:6px 8px;">Status / Difference</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr style="border-bottom:1px solid #eee;">
+            <td style="padding:6px 8px; font-weight:bold;">Category Highest:</td>
+            <td style="padding:6px 8px;">${catTopMarks}</td>
+            <td style="padding:6px 8px; color:#F44336; font-size:12px;">-${(parseFloat(catTopMarks) - parseFloat(marks)).toFixed(2)} marks behind top</td>
+          </tr>
+          <tr style="border-bottom:1px solid #eee;">
+            <td style="padding:6px 8px; font-weight:bold;">Candidate Marks:</td>
+            <td style="padding:6px 8px; font-weight:bold; color:#138808;">${marks}</td>
+            <td style="padding:6px 8px; font-weight:bold; color:#138808; font-size:12px;">Reference Base</td>
+          </tr>
+          <tr style="border-bottom:1px solid #eee;">
+            <td style="padding:6px 8px; font-weight:bold;">Category Average:</td>
+            <td style="padding:6px 8px;">${catAvg}</td>
+            <td style="padding:6px 8px; color:${parseFloat(marks) >= parseFloat(catAvg) ? '#138808' : '#F44336'}; font-weight:bold; font-size:12px;">
+              ${parseFloat(marks) >= parseFloat(catAvg) ? '+' + (parseFloat(marks) - parseFloat(catAvg)).toFixed(2) + ' marks above avg' : (parseFloat(marks) - parseFloat(catAvg)).toFixed(2) + ' marks below avg'}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Footer Verification & Watermark -->
+    <div style="margin-top:40px; padding-top:15px; border-top:1px solid #eee; display:flex; justify-content:space-between; font-size:10px; color:#777;">
+      <div>
+        Generated via RSSB Merit Search Engine · pavnxet
+      </div>
+      <div>
+        Date: ${new Date().toLocaleDateString()}
+      </div>
+    </div>
+  `;
+
+  const opt = {
+    margin:       15,
+    filename:     `result_${roll}_${name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.pdf`,
+    image:        { type: 'jpeg', quality: 0.98 },
+    html2canvas:  { scale: 2, useCORS: true },
+    jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+  };
+
+  html2pdf().set(opt).from(element).save();
 }
 </script>
 </body>
